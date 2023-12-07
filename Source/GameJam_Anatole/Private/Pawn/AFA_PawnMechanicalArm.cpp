@@ -7,6 +7,7 @@
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "Components/BoxComponent.h"
 #include "Actor/AFA_ToyPiece.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 
 AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 {
@@ -33,6 +34,26 @@ AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 		return;
 	GrabLocation->SetupAttachment(Claw);
 
+	Arm = CreateDefaultSubobject<USceneComponent>(TEXT("Arm"));
+	if (!ensure(Arm != nullptr))
+		return;
+	Arm->SetupAttachment(RootComponent);
+
+	ArmBaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArmBaseMesh"));
+	if (!ensure(ArmBaseMesh != nullptr))
+		return;
+	ArmBaseMesh->SetupAttachment(Arm);
+
+	ArmBackMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArmBackMesh"));
+	if (!ensure(ArmBackMesh != nullptr))
+		return;
+	ArmBackMesh->SetupAttachment(Arm);
+
+	ArmFrontMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArmFrontMesh"));
+	if (!ensure(ArmFrontMesh != nullptr))
+		return;
+	ArmFrontMesh->SetupAttachment(Arm);
+
 	GrabZone = CreateDefaultSubobject<UBoxComponent>(TEXT("GrabZone"));
 	if(!ensure(GrabZone != nullptr))
 		return;
@@ -43,6 +64,21 @@ AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 	if (!ensure(PhysicHandle != nullptr))
 		return;
 	PhysicHandle->InterpolationSpeed = 25;
+
+	BasePivot = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("BasePivot"));
+	if (!ensure(BasePivot != nullptr))
+		return;
+	BasePivot->SetupAttachment(Arm);
+
+	ArmsPivot = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("ArmsPivot"));
+	if (!ensure(ArmsPivot != nullptr))
+		return;
+	ArmsPivot->SetupAttachment(Arm);
+
+	ClawPivot = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("ClawPivot"));
+	if (!ensure(ClawPivot != nullptr))
+		return;
+	ClawPivot->SetupAttachment(Arm);
 }
 
 // Called when the game starts or when spawned

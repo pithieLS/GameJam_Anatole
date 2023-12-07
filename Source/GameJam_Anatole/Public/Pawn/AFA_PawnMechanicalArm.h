@@ -9,6 +9,7 @@
 class UPhysicsHandleComponent;
 class UBoxComponent;
 class AAFA_ToyPiece;
+class UPhysicsConstraintComponent;
 
 UCLASS()
 class GAMEJAM_ANATOLE_API AAFA_PawnMechanicalArm : public APawn
@@ -44,15 +45,25 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* ArmFrontMesh;
 	UPROPERTY(EditDefaultsOnly)
-	USceneComponent* Claw;	
+	UStaticMeshComponent* ArmBaseMesh;
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* ClawMesh;
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* GrabLocation;
 	UPROPERTY(EditDefaultsOnly)
+	USceneComponent* Claw;	
+	UPROPERTY(EditDefaultsOnly)
+	USceneComponent* Arm;	
+	UPROPERTY(EditDefaultsOnly)
 	UBoxComponent* GrabZone;
 	UPROPERTY(EditDefaultsOnly)
 	UPhysicsHandleComponent* PhysicHandle;
+	UPROPERTY(EditDefaultsOnly)
+	UPhysicsConstraintComponent* BasePivot;
+	UPROPERTY(EditDefaultsOnly)
+	UPhysicsConstraintComponent* ArmsPivot;
+	UPROPERTY(EditDefaultsOnly)
+	UPhysicsConstraintComponent* ClawPivot;
 
 	AAFA_ToyPiece* GrabbedToyPiece = nullptr;
 
