@@ -14,4 +14,8 @@ class GAMEJAM_ANATOLE_API AAFA_GameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	AAFA_GameMode();
+
+	virtual void BeginPlay() override;
 };

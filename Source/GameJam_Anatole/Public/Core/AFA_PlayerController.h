@@ -13,5 +13,6 @@ UCLASS()
 class GAMEJAM_ANATOLE_API AAFA_PlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+public:
+
 };
