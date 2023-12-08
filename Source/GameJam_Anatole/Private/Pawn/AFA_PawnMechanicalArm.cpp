@@ -238,6 +238,8 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	{
 		PhysicHandle->ReleaseComponent();
 		GrabbedToyPiece = nullptr;
+
+		GrabPoint->SetRelativeRotation(FRotator(0, 0, 0));
 		return;
 	}
 
@@ -264,14 +266,86 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	}
 }
 
-void AAFA_PawnMechanicalArm::RotateToyRoll(int AxisValue)
+void AAFA_PawnMechanicalArm::RotateToyPitch(float AxisValue)
 {
-	FRotator GrabPointRot = GrabPoint->GetRelativeRotation();
+	UE_LOG(LogTemp, Warning, TEXT("%f"), AxisValue);
+	if (bIsToyRotating)
+		return;
+
+	int RotationDirection; //////A CHANGER LE NOM DE VARIABLE
+	if (AxisValue > JOYSTICK_TRESHOLD) // Joystick up case
+		RotationDirection = 1;
+	else if (AxisValue < JOYSTICK_TRESHOLD * -1) // Joystick down case
+		RotationDirection = -1;
+	else
+		return;
+
+	bIsToyRotating = true;
+
+
+	FRotator CurrentRotation = GrabPoint->GetRelativeRotation();
+	float CurrentPitch = CurrentRotation.Pitch;
+	float TargetPitch = CurrentPitch + (90 * RotationDirection);
+
+	// Rotate cube using a timer and a linear interpolate
+	FTimerHandle TimerHandle;
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+	float Alpha = 0.0f;
+	TimerManager.SetTimer(TimerHandle, [this, CurrentRotation, CurrentPitch, TargetPitch, &Alpha, &TimerManager, &TimerHandle]()
+		{
+			if (FMath::IsNearlyEqual(Alpha, 1.0f))
+			{
+				bIsToyRotating = false;
+				Alpha = 0.0f;
+				TimerManager.ClearTimer(TimerHandle);
+				return;
+			}
+
+			const float NewPitch = FMath::Lerp(CurrentPitch, TargetPitch, Alpha);
+			GrabPoint->SetRelativeRotation(FRotator(NewPitch, CurrentRotation.Yaw, CurrentRotation.Roll));
+
+			Alpha = FMath::Min(Alpha + 0.02f, 1.0f);
+		}, 0.02f, true);
 }
 
-void AAFA_PawnMechanicalArm::RotateToyPitch(int AxisValue)
+void AAFA_PawnMechanicalArm::RotateToyRoll(float AxisValue)
 {
+	if (bIsToyRotating)
+		return;
 
+	int RotationDirection; //////A CHANGER LE NOM DE VARIABLE
+	if (AxisValue > JOYSTICK_TRESHOLD) // Joystick up case
+		RotationDirection = 1;
+	else if (AxisValue < JOYSTICK_TRESHOLD * -1) // Joystick down case
+		RotationDirection = -1;
+	else
+		return;
+
+	bIsToyRotating = true;
+
+
+	FRotator CurrentRotation = GrabPoint->GetRelativeRotation();
+	float CurrentRoll = CurrentRotation.Roll;
+	float TargetRoll = CurrentRoll + (90 * RotationDirection);
+
+	// Rotate cube using a timer and a linear interpolate
+	FTimerHandle TimerHandle;
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+	float Alpha = 0.0f;
+	TimerManager.SetTimer(TimerHandle, [this, CurrentRotation, CurrentRoll, TargetRoll, &Alpha, &TimerManager, &TimerHandle]()
+		{
+			if (Alpha > 1.0f)
+			{
+				bIsToyRotating = false;
+				TimerManager.ClearTimer(TimerHandle);
+				Alpha = 0.0f;
+			}
+
+			const float NewRoll = FMath::Lerp(CurrentRoll, TargetRoll, Alpha);
+			GrabPoint->SetRelativeRotation(FRotator(NewRoll, CurrentRotation.Yaw, CurrentRotation.Roll));
+
+			Alpha += 0.02;
+		}, 0.02f, true);
 }
 
 // Called to bind functionality to input
@@ -283,26 +357,7 @@ void AAFA_PawnMechanicalArm::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	PlayerInputComponent->BindAxis("MoveForward", this, &AAFA_PawnMechanicalArm::OnMoveForward);
 	PlayerInputComponent->BindAxis("MoveUp", this, &AAFA_PawnMechanicalArm::OnMoveUp);
 	PlayerInputComponent->BindAxis("Rotate", this, &AAFA_PawnMechanicalArm::OnRotateClaw);
+	PlayerInputComponent->BindAxis("RotateToyRoll", this, &AAFA_PawnMechanicalArm::RotateToyRoll);
+	PlayerInputComponent->BindAxis("RotateToyPitch", this, &AAFA_PawnMechanicalArm::RotateToyPitch);
 	PlayerInputComponent->BindAction("GrabDrop", IE_Pressed, this, &AAFA_PawnMechanicalArm::GrabDropObject);
-	//PlayerInputComponent->BindAction("RotateToyRollUp", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyRoll);
-	//PlayerInputComponent->BindAction("RotateToyRollDown", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyRoll);
-	//PlayerInputComponent->BindAction("RotateToyPitchRight", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyPitch);
-	//PlayerInputComponent->BindAction("RotateToyPitchLeft", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyPitch);
-
-	FInputActionBinding RotateUpPressed("RotateToyRollUp", IE_Pressed);
-	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyRoll(1); });
-	InputComponent->AddActionBinding(RotateUpPressed);
-
-	FInputActionBinding RotateDownPressed("RotateToyRollDown", IE_Pressed);
-	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyRoll(-1); });
-	InputComponent->AddActionBinding(RotateUpPressed);
-
-	FInputActionBinding RotateRightPressed("RotateToyPitchRight", IE_Pressed);
-	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyPitch(1); });
-	InputComponent->AddActionBinding(RotateUpPressed);
-
-	FInputActionBinding RotateLeftPressed("RotateToyPitchLeft", IE_Pressed);
-	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyPitch(-1); });
-	InputComponent->AddActionBinding(RotateUpPressed);
 }
-

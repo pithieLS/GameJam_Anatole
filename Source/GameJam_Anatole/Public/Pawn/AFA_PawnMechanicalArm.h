@@ -32,8 +32,8 @@ protected:
 	void OnMoveForward(float AxisValue);
 	void OnRotateClaw(float AxisValue);
 	void GrabDropObject();
-	void RotateToyRoll(int AxisValue);
-	void RotateToyPitch(int AxisValue);
+	void RotateToyPitch(float AxisValue);
+	void RotateToyRoll(float AxisValue);
 
 	// Const variables TEMP
 	const int32 MAX_UP = 100;
@@ -46,6 +46,7 @@ protected:
 	const int32 MIN_ROLL = -150;
 	const float MOVE_SPEED = 2; // The claw moving speed scale
 	const float ROTATE_SPEED = 2; // The claw rotating speed scale
+	const float JOYSTICK_TRESHOLD = 0.5f;
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
@@ -73,7 +74,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UPhysicsConstraintComponent* ClawPivot;
 
+	// Toy grab related
 	AAFA_ToyPiece* GrabbedToyPiece = nullptr;
+	bool bIsToyRotating = false;
 
 public:	
 	// Called every frame
