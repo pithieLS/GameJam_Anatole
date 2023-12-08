@@ -29,10 +29,10 @@ AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 		return;
 	ClawMesh->SetupAttachment(Claw);
 
-	GrabLocation = CreateDefaultSubobject<USceneComponent>(TEXT("GrabLocation"));
-	if (!ensure(GrabLocation != nullptr))
+	GrabPoint = CreateDefaultSubobject<USceneComponent>(TEXT("GrabLocation"));
+	if (!ensure(GrabPoint != nullptr))
 		return;
-	GrabLocation->SetupAttachment(Claw);
+	GrabPoint->SetupAttachment(Claw);
 
 	Arm = CreateDefaultSubobject<USceneComponent>(TEXT("Arm"));
 	if (!ensure(Arm != nullptr))
@@ -87,7 +87,7 @@ void AAFA_PawnMechanicalArm::BeginPlay()
 	Super::BeginPlay();
 }
 
-bool AAFA_PawnMechanicalArm::CheckIfClawIsColliding(FVector Direction)
+bool AAFA_PawnMechanicalArm::CheckClawCollision(FVector Direction)
 {
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(this); // Ignore self
@@ -96,7 +96,7 @@ bool AAFA_PawnMechanicalArm::CheckIfClawIsColliding(FVector Direction)
 	bool bIsColliding = GetWorld()->SweepMultiByObjectType(
 		HitResults,
 		ClawMesh->GetComponentLocation(),
-		ClawMesh->GetComponentLocation() + Direction * 2, // Use the direction for the collision check and *2 so it never overlap
+		ClawMesh->GetComponentLocation() + Direction * 3, // Use the direction for the collision check and *2 so it never overlap
 		FQuat::Identity,
 		FCollisionObjectQueryParams::AllStaticObjects, // Only check for world static so it don't check toy parts
 		FCollisionShape::MakeBox(ClawMesh->Bounds.BoxExtent),
@@ -112,7 +112,7 @@ void AAFA_PawnMechanicalArm::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	PhysicHandle->SetTargetLocation(GrabLocation->GetComponentLocation());
+	PhysicHandle->SetTargetLocationAndRotation(GrabPoint->GetComponentLocation(), GrabPoint->GetComponentRotation());
 }
 
 void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
@@ -136,12 +136,41 @@ void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
 
 	//Check if Claw is colliding with anything
 	FVector MoveDirection = GetActorForwardVector();
-	if (CheckIfClawIsColliding(MoveDirection * -1) && AxisValue < 0)
+	if (CheckClawCollision(MoveDirection * -1) && AxisValue < 0)
 		return;
-	else if (CheckIfClawIsColliding(MoveDirection) && AxisValue > 0)
+	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
 	Claw->AddRelativeLocation(FVector(MOVE_SPEED * AxisValue, 0, 0));
+}
+
+void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
+{
+	if (AxisValue == 0)
+		return;
+
+	float ClawRoll = Claw->GetRelativeRotation().Roll;
+
+	// Cap the roll axis
+	if (ClawRoll >= MAX_ROLL && AxisValue < 0)
+	{
+		Claw->SetRelativeRotation(FRotator(0, 0, MAX_ROLL));
+		return;
+	}
+	else if (ClawRoll <= MIN_ROLL && AxisValue > 0)
+	{
+		Claw->SetRelativeRotation(FRotator(0, 0, MIN_ROLL));
+		return;
+	}
+
+	//Check if Claw is colliding with anything
+	FVector MoveDirection = GetActorRightVector();
+	if (CheckClawCollision(MoveDirection * -1) && AxisValue < 0)
+		return;
+	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
+		return;
+
+	Claw->AddRelativeRotation(FRotator(0, 0, (ROTATE_SPEED * AxisValue) * -1));
 }
 
 void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
@@ -165,9 +194,9 @@ void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 
 	//Check if Claw is colliding with anything
 	FVector MoveDirection = GetActorRightVector();
-	if (CheckIfClawIsColliding(MoveDirection * -1) && AxisValue < 0)
+	if (CheckClawCollision(MoveDirection * -1) && AxisValue < 0)
 		return;
-	else if (CheckIfClawIsColliding(MoveDirection) && AxisValue > 0)
+	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
 	Claw->AddRelativeLocation(FVector(0, MOVE_SPEED * AxisValue, 0));
@@ -195,9 +224,9 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 
 	//Check if Claw is colliding with anything
 	FVector MoveDirection = GetActorUpVector();
-	if (CheckIfClawIsColliding(MoveDirection * -1) && AxisValue < 0)
+	if (CheckClawCollision(MoveDirection * -1) && AxisValue < 0)
 		return;
-	else if (CheckIfClawIsColliding(MoveDirection) && AxisValue > 0)
+	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
 	Claw->AddRelativeLocation(FVector(0, 0, MOVE_SPEED * AxisValue));
@@ -235,14 +264,45 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	}
 }
 
+void AAFA_PawnMechanicalArm::RotateToyRoll(int AxisValue)
+{
+	FRotator GrabPointRot = GrabPoint->GetRelativeRotation();
+}
+
+void AAFA_PawnMechanicalArm::RotateToyPitch(int AxisValue)
+{
+
+}
+
 // Called to bind functionality to input
 void AAFA_PawnMechanicalArm::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	const int a = 1;
 	PlayerInputComponent->BindAxis("MoveRight", this, &AAFA_PawnMechanicalArm::OnMoveRight);
 	PlayerInputComponent->BindAxis("MoveForward", this, &AAFA_PawnMechanicalArm::OnMoveForward);
 	PlayerInputComponent->BindAxis("MoveUp", this, &AAFA_PawnMechanicalArm::OnMoveUp);
+	PlayerInputComponent->BindAxis("Rotate", this, &AAFA_PawnMechanicalArm::OnRotateClaw);
 	PlayerInputComponent->BindAction("GrabDrop", IE_Pressed, this, &AAFA_PawnMechanicalArm::GrabDropObject);
+	//PlayerInputComponent->BindAction("RotateToyRollUp", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyRoll);
+	//PlayerInputComponent->BindAction("RotateToyRollDown", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyRoll);
+	//PlayerInputComponent->BindAction("RotateToyPitchRight", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyPitch);
+	//PlayerInputComponent->BindAction("RotateToyPitchLeft", IE_Pressed, this, &AAFA_PawnMechanicalArm::RotateToyPitch);
+
+	FInputActionBinding RotateUpPressed("RotateToyRollUp", IE_Pressed);
+	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyRoll(1); });
+	InputComponent->AddActionBinding(RotateUpPressed);
+
+	FInputActionBinding RotateDownPressed("RotateToyRollDown", IE_Pressed);
+	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyRoll(-1); });
+	InputComponent->AddActionBinding(RotateUpPressed);
+
+	FInputActionBinding RotateRightPressed("RotateToyPitchRight", IE_Pressed);
+	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyPitch(1); });
+	InputComponent->AddActionBinding(RotateUpPressed);
+
+	FInputActionBinding RotateLeftPressed("RotateToyPitchLeft", IE_Pressed);
+	RotateUpPressed.ActionDelegate.GetDelegateForManualSet().BindLambda([this]() { RotateToyPitch(-1); });
+	InputComponent->AddActionBinding(RotateUpPressed);
 }
 

@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "AFA_ToyPiece.generated.h"
 
+class USphereComponent;
+
 UCLASS()
 class GAMEJAM_ANATOLE_API AAFA_ToyPiece : public AActor
 {
@@ -22,6 +24,8 @@ protected:
 	// Components
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* PieceMesh;
+	UPROPERTY(EditDefaultsOnly)
+	USphereComponent* AttachPoint1;
 
 public:	
 	// Called every frame

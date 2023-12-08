@@ -24,22 +24,28 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	bool CheckIfClawIsColliding(FVector Direction);
+	bool CheckClawCollision(FVector Direction);
 
 	// Input related
 	void OnMoveRight(float AxisValue);
 	void OnMoveUp(float AxisValue);
 	void OnMoveForward(float AxisValue);
+	void OnRotateClaw(float AxisValue);
 	void GrabDropObject();
+	void RotateToyRoll(int AxisValue);
+	void RotateToyPitch(int AxisValue);
 
-	// Const variables
+	// Const variables TEMP
 	const int32 MAX_UP = 100;
 	const int32 MAX_DOWN = -100;
 	const int32 MAX_LEFT = -100;
 	const int32 MAX_RIGHT = 100;
 	const int32 MAX_FORWARD = 100;
 	const int32 MAX_BACK = -100;
+	const int32 MAX_ROLL = 0;
+	const int32 MIN_ROLL = -150;
 	const float MOVE_SPEED = 2; // The claw moving speed scale
+	const float ROTATE_SPEED = 2; // The claw rotating speed scale
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
@@ -51,7 +57,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* ClawMesh;
 	UPROPERTY(EditDefaultsOnly)
-	USceneComponent* GrabLocation;
+	USceneComponent* GrabPoint;
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* Claw;	
 	UPROPERTY(EditDefaultsOnly)
