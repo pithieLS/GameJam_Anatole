@@ -87,6 +87,26 @@ void AAFA_PawnMechanicalArm::BeginPlay()
 	Super::BeginPlay();
 }
 
+bool AAFA_PawnMechanicalArm::CheckIfClawIsColliding(FVector Direction)
+{
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this); // Ignore self
+
+	TArray<FHitResult> HitResults;
+	bool bIsColliding = GetWorld()->SweepMultiByObjectType(
+		HitResults,
+		ClawMesh->GetComponentLocation(),
+		ClawMesh->GetComponentLocation() + Direction * 2, // Use the direction for the collision check and *2 so it never overlap
+		FQuat::Identity,
+		FCollisionObjectQueryParams::AllStaticObjects, // Only check for world static so it don't check toy parts
+		FCollisionShape::MakeBox(ClawMesh->Bounds.BoxExtent),
+		CollisionParams
+	);
+
+	return bIsColliding;
+
+}
+
 // Called every frame
 void AAFA_PawnMechanicalArm::Tick(float DeltaTime)
 {
@@ -97,6 +117,9 @@ void AAFA_PawnMechanicalArm::Tick(float DeltaTime)
 
 void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
 {
+	if (AxisValue == 0)
+		return;
+
 	FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the X axis
@@ -111,11 +134,21 @@ void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
 		return;
 	}
 
+	//Check if Claw is colliding with anything
+	FVector MoveDirection = GetActorForwardVector();
+	if (CheckIfClawIsColliding(MoveDirection * -1) && AxisValue < 0)
+		return;
+	else if (CheckIfClawIsColliding(MoveDirection) && AxisValue > 0)
+		return;
+
 	Claw->AddRelativeLocation(FVector(MOVE_SPEED * AxisValue, 0, 0));
 }
 
 void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 {
+	if (AxisValue == 0)
+		return;
+
 	FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the Y axis
@@ -130,12 +163,22 @@ void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 		return;
 	}
 
+	//Check if Claw is colliding with anything
+	FVector MoveDirection = GetActorRightVector();
+	if (CheckIfClawIsColliding(MoveDirection * -1) && AxisValue < 0)
+		return;
+	else if (CheckIfClawIsColliding(MoveDirection) && AxisValue > 0)
+		return;
+
 	Claw->AddRelativeLocation(FVector(0, MOVE_SPEED * AxisValue, 0));
 
 }
 
 void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 {
+	if (AxisValue == 0)
+		return;
+
 	FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the Z axis
@@ -149,6 +192,13 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 		Claw->SetRelativeLocation(FVector(ClawLoc.X, ClawLoc.Y, MAX_UP));
 		return;
 	}
+
+	//Check if Claw is colliding with anything
+	FVector MoveDirection = GetActorUpVector();
+	if (CheckIfClawIsColliding(MoveDirection * -1) && AxisValue < 0)
+		return;
+	else if (CheckIfClawIsColliding(MoveDirection) && AxisValue > 0)
+		return;
 
 	Claw->AddRelativeLocation(FVector(0, 0, MOVE_SPEED * AxisValue));
 }

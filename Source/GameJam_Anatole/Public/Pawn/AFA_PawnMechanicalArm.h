@@ -24,6 +24,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	bool CheckIfClawIsColliding(FVector Direction);
+
 	// Input related
 	void OnMoveRight(float AxisValue);
 	void OnMoveUp(float AxisValue);
