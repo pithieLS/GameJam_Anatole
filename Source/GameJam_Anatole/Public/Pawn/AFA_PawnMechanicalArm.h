@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Components/TimelineComponent.h"
 #include "AFA_PawnMechanicalArm.generated.h"
 
 class UPhysicsHandleComponent;
@@ -26,14 +27,21 @@ protected:
 
 	bool CheckClawCollision(FVector Direction);
 
+	// Toy rotation related functions
+	void RotateToy(FRotator RotationToAdd);
+	UFUNCTION()
+	void HandleToyRotation(float TLValue);
+	UFUNCTION()
+    void OnTimelineFinished();
+
 	// Input related
 	void OnMoveRight(float AxisValue);
 	void OnMoveUp(float AxisValue);
 	void OnMoveForward(float AxisValue);
 	void OnRotateClaw(float AxisValue);
 	void GrabDropObject();
-	void RotateToyPitch(float AxisValue);
-	void RotateToyRoll(float AxisValue);
+	void OnRequestRotateToyPitch(float AxisValue);
+	void OnRequestRotateToyRoll(float AxisValue);
 
 	// Const variables TEMP
 	const int32 MAX_UP = 100;
@@ -74,9 +82,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UPhysicsConstraintComponent* ClawPivot;
 
-	// Toy grab related
+	// Toy related variables
 	AAFA_ToyPiece* GrabbedToyPiece = nullptr;
 	bool bIsToyRotating = false;
+	FTimeline TimelineRot;
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* CurveFloat;
+	FRotator ToyNextRot;
+	FRotator ToyStartRot;
 
 public:	
 	// Called every frame
