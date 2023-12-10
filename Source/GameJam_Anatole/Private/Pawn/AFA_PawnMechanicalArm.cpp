@@ -63,7 +63,7 @@ AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 	PhysicHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 	if (!ensure(PhysicHandle != nullptr))
 		return;
-	PhysicHandle->InterpolationSpeed = 25;
+	PhysicHandle->InterpolationSpeed = 25; // Speed of the grabbed object's lag
 
 	BasePivot = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("BasePivot"));
 	if (!ensure(BasePivot != nullptr))
@@ -93,7 +93,7 @@ void AAFA_PawnMechanicalArm::BeginPlay()
 	FOnTimelineEvent OnTimelineFinishedCallback;
 	TimelineProgress.BindUFunction(this, "HandleToyRotation");
 	TimelineRot.AddInterpFloat(CurveFloat, TimelineProgress);
-	OnTimelineFinishedCallback.BindUFunction(this, "OnTimelineFinished");
+	OnTimelineFinishedCallback.BindUFunction(this, "OnRotateFinished");
 	TimelineRot.SetTimelineFinishedFunc(OnTimelineFinishedCallback);
 }
 
@@ -132,13 +132,19 @@ void AAFA_PawnMechanicalArm::RotateToy(FRotator RotationToAdd)
 
 void AAFA_PawnMechanicalArm::HandleToyRotation(float TLValue)
 {
+	if (GrabbedToyPiece == nullptr)
+	{
+		OnRotateFinished();
+		return;
+	}
+
 	FQuat NewQuat = FQuat::Slerp(FQuat(ToyStartRot), FQuat(ToyNextRot), TLValue);
 	FRotator NewRotation = NewQuat.Rotator();
 
 	GrabbedToyPiece->SetActorRotation(NewRotation);
 }
 
-void AAFA_PawnMechanicalArm::OnTimelineFinished()
+void AAFA_PawnMechanicalArm::OnRotateFinished()
 {
 	TimelineRot.Stop();
 	bIsToyRotating = false;
@@ -155,9 +161,16 @@ void AAFA_PawnMechanicalArm::Tick(float DeltaTime)
 	// Set the timeline tick to the delta time
 	TimelineRot.TickTimeline(DeltaTime);
 
-	// Avoid ToyPiece from rotating because of it's angular velocity
-	if(GrabbedToyPiece)
+	if (GrabbedToyPiece)
+	{
+		// Avoid ToyPiece from rotating because of it's angular velocity
 		GrabbedToyPiece->GetPieceMesh()->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+
+		// Avoid the cube rotation be changed when colliding with anything
+		if (!bIsToyRotating)
+			GrabbedToyPiece->SetActorRotation(ToyNextRot);
+	}
+
 }
 
 void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
@@ -186,7 +199,7 @@ void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
 	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeLocation(FVector(MOVE_SPEED * AxisValue, 0, 0));
+	Claw->AddRelativeLocation(FVector(MOVE_SPEED * AxisValue, 0, 0) * FApp::GetDeltaTime());
 }
 
 void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
@@ -215,7 +228,7 @@ void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
 	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeRotation(FRotator(0, 0, (ROTATE_SPEED * AxisValue) * -1));
+	Claw->AddRelativeRotation(FRotator(0, 0, (ROTATE_SPEED * AxisValue) * -1) * FApp::GetDeltaTime());
 }
 
 void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
@@ -244,7 +257,7 @@ void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeLocation(FVector(0, MOVE_SPEED * AxisValue, 0));
+	Claw->AddRelativeLocation(FVector(0, MOVE_SPEED * AxisValue, 0) * FApp::GetDeltaTime());
 
 }
 
@@ -274,7 +287,7 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeLocation(FVector(0, 0, MOVE_SPEED * AxisValue));
+	Claw->AddRelativeLocation(FVector(0, 0, MOVE_SPEED * AxisValue) * FApp::GetDeltaTime());
 }
 
 void AAFA_PawnMechanicalArm::GrabDropObject()
@@ -312,7 +325,12 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 
 void AAFA_PawnMechanicalArm::OnRequestRotateToyPitch(float AxisValue)
 {
+	// If grabbed object is rotating, return
 	if (bIsToyRotating)
+		return;
+
+	// If there is no grabbed object, return
+	if (GrabbedToyPiece == nullptr)
 		return;
 
 	int RotationDirection;
@@ -330,7 +348,12 @@ void AAFA_PawnMechanicalArm::OnRequestRotateToyPitch(float AxisValue)
 
 void AAFA_PawnMechanicalArm::OnRequestRotateToyRoll(float AxisValue)
 {
+	// If grabbed object is rotating, return
 	if (bIsToyRotating)
+		return;
+
+	// If there is no grabbed object, return
+	if (GrabbedToyPiece == nullptr)
 		return;
 
 	int RotationDirection;

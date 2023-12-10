@@ -7,6 +7,8 @@
 #include "Components/TimelineComponent.h"
 #include "AFA_PawnMechanicalArm.generated.h"
 
+#define JOYSTICK_TRESHOLD 0.f
+
 class UPhysicsHandleComponent;
 class UBoxComponent;
 class AAFA_ToyPiece;
@@ -32,7 +34,7 @@ protected:
 	UFUNCTION()
 	void HandleToyRotation(float TLValue);
 	UFUNCTION()
-    void OnTimelineFinished();
+    void OnRotateFinished();
 
 	// Input related
 	void OnMoveRight(float AxisValue);
@@ -44,17 +46,26 @@ protected:
 	void OnRequestRotateToyRoll(float AxisValue);
 
 	// Const variables TEMP
-	const int32 MAX_UP = 100;
-	const int32 MAX_DOWN = -100;
-	const int32 MAX_LEFT = -100;
-	const int32 MAX_RIGHT = 100;
-	const int32 MAX_FORWARD = 100;
-	const int32 MAX_BACK = -100;
-	const int32 MAX_ROLL = 0;
-	const int32 MIN_ROLL = -150;
-	const float MOVE_SPEED = 2; // The claw moving speed scale
-	const float ROTATE_SPEED = 2; // The claw rotating speed scale
-	const float JOYSTICK_TRESHOLD = 0.5f;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MAX_UP = 100;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MAX_DOWN = -100;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MAX_LEFT = -100;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MAX_RIGHT = 100;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MAX_FORWARD = 100;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MAX_BACK = -100;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MAX_ROLL = 0;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	int32 MIN_ROLL = -150;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | Control speeds")
+	float MOVE_SPEED = 150;
+	UPROPERTY(EditDefaultsOnly, Category = "Control properties | Control speeds")
+	float ROTATE_SPEED = 100;
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
@@ -88,8 +99,9 @@ protected:
 	FTimeline TimelineRot;
 	UPROPERTY(EditAnywhere)
 	UCurveFloat* CurveFloat;
-	FRotator ToyNextRot;
+	FRotator ToyNextRot = FRotator(0, 0, 0);
 	FRotator ToyStartRot;
+	int32 RotAmount = 90;
 
 public:	
 	// Called every frame
