@@ -97,16 +97,16 @@ void AAFA_PawnMechanicalArm::BeginPlay()
 	TimelineRot.SetTimelineFinishedFunc(OnTimelineFinishedCallback);
 }
 
-bool AAFA_PawnMechanicalArm::CheckClawCollision(FVector Direction)
+bool AAFA_PawnMechanicalArm::CheckClawCollision(FVector Direction) const
 {
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(this); // Ignore self
 
 	TArray<FHitResult> HitResults;
-	bool bIsColliding = GetWorld()->SweepMultiByObjectType(
+	const bool bIsColliding = GetWorld()->SweepMultiByObjectType(
 		HitResults,
 		ClawMesh->GetComponentLocation(),
-		ClawMesh->GetComponentLocation() + Direction * 3, // Use the direction for the collision check and *2 so it never overlap
+		ClawMesh->GetComponentLocation() + Direction * 3, // Use the direction for the collision check and *3 so it never overlap
 		FQuat::Identity,
 		FCollisionObjectQueryParams::AllStaticObjects, // Only check for world static so it don't check toy parts
 		FCollisionShape::MakeBox(ClawMesh->Bounds.BoxExtent),
@@ -114,7 +114,6 @@ bool AAFA_PawnMechanicalArm::CheckClawCollision(FVector Direction)
 	);
 
 	return bIsColliding;
-
 }
 
 void AAFA_PawnMechanicalArm::RotateToy(FRotator RotationToAdd)
@@ -125,7 +124,7 @@ void AAFA_PawnMechanicalArm::RotateToy(FRotator RotationToAdd)
 	FQuat CurrentQuat = FQuat(ToyStartRot);
 	FQuat AdditionalQuat = FQuat(RotationToAdd);
 	FQuat NewQuat = AdditionalQuat * CurrentQuat;
-	ToyNextRot = NewQuat.Rotator();	
+	ToyNextRot = NewQuat.Rotator();
 	
 	TimelineRot.PlayFromStart();
 }
@@ -138,8 +137,8 @@ void AAFA_PawnMechanicalArm::HandleToyRotation(float TLValue)
 		return;
 	}
 
-	FQuat NewQuat = FQuat::Slerp(FQuat(ToyStartRot), FQuat(ToyNextRot), TLValue);
-	FRotator NewRotation = NewQuat.Rotator();
+	const FQuat NewQuat = FQuat::Slerp(FQuat(ToyStartRot), FQuat(ToyNextRot), TLValue);
+	const FRotator NewRotation = NewQuat.Rotator();
 
 	GrabbedToyPiece->SetActorRotation(NewRotation);
 }
@@ -222,10 +221,10 @@ void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
 	}
 
 	//Check if Claw is colliding with anything
-	FVector MoveDirection = GetActorRightVector();
-	if (CheckClawCollision(MoveDirection * -1) && AxisValue < 0)
+	FVector MoveDirection = FVector(1, 1, 1); // Check all directions
+	if (CheckClawCollision(MoveDirection) && AxisValue < 0)
 		return;
-	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
+	else if (CheckClawCollision(MoveDirection * -1) && AxisValue > 0)
 		return;
 
 	Claw->AddRelativeRotation(FRotator(0, 0, (ROTATE_SPEED * AxisValue) * -1) * FApp::GetDeltaTime());
@@ -236,7 +235,7 @@ void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 	if (AxisValue == 0)
 		return;
 
-	FVector ClawLoc = Claw->GetRelativeLocation();
+	const FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the Y axis
 	if (ClawLoc.Y <= MAX_LEFT && AxisValue < 0)
@@ -303,10 +302,10 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	TArray<AActor*> OverlappingActors;
 	GrabZone->GetOverlappingActors(OverlappingActors);
 
+	// Grab first find toy
 	for (AActor* Actor : OverlappingActors)
 	{
-		AAFA_ToyPiece* CastedActor = Cast<AAFA_ToyPiece>(Actor);
-		if (CastedActor != nullptr)
+		if (AAFA_ToyPiece* CastedActor = Cast<AAFA_ToyPiece>(Actor)) // Check if the overlapped actor is a toy
 		{
 			GrabbedToyPiece = CastedActor;
 			break;
@@ -323,7 +322,7 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	}
 }
 
-void AAFA_PawnMechanicalArm::OnRequestRotateToyPitch(float AxisValue)
+void AAFA_PawnMechanicalArm::OnRequestRotateToy(float AxisValue)
 {
 	// If grabbed object is rotating, return
 	if (bIsToyRotating)
@@ -333,41 +332,41 @@ void AAFA_PawnMechanicalArm::OnRequestRotateToyPitch(float AxisValue)
 	if (GrabbedToyPiece == nullptr)
 		return;
 
-	int RotationDirection;
-	if (AxisValue > JOYSTICK_TRESHOLD) // Joystick up case
-		RotationDirection = -1;
-	else if (AxisValue < JOYSTICK_TRESHOLD * -1) // Joystick down case
-		RotationDirection = 1;
-	else
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (!ensure(PlayerController != nullptr))
 		return;
+
+	float RightThumbstickX, RightThumbstickY;
+	PlayerController->GetInputAnalogStickState(EControllerAnalogStick::CAS_RightStick, RightThumbstickX, RightThumbstickY);
+
+	if (abs(RightThumbstickX) < JOYSTICK_TRESHOLD && abs(RightThumbstickY) < JOYSTICK_TRESHOLD)
+		return;
+
+	// Check X Axis (Pitch)
+	int PitchDirection;
+	if (RightThumbstickX > JOYSTICK_TRESHOLD) // Joystick up case
+		PitchDirection = -1;
+	else if (RightThumbstickX < JOYSTICK_TRESHOLD * -1) // Joystick down case
+		PitchDirection = 1;
+	else
+		PitchDirection = 0;
+
+	//Check Y Axis (Roll)
+	int RollDirection;
+	if (RightThumbstickY > JOYSTICK_TRESHOLD) // Joystick right case
+		RollDirection = 1;
+	else if (RightThumbstickY < JOYSTICK_TRESHOLD * -1) // Joystick left case
+		RollDirection = -1;
+	else
+		RollDirection = 0;
+
+	// If the joystick is more on an axis A than the axis B, rotate the toy piece on axis A
+	if(abs(RightThumbstickX) > abs(RightThumbstickY))
+		RotateToy(FRotator(0, 90 * PitchDirection, 0));
+	else if (abs(RightThumbstickY) > abs(RightThumbstickX))
+		RotateToy(FRotator(90 * RollDirection, 0, 0));
 
 	bIsToyRotating = true;
-
-	RotateToy(FRotator(0, 90 * RotationDirection, 0));
-}
-
-void AAFA_PawnMechanicalArm::OnRequestRotateToyRoll(float AxisValue)
-{
-	// If grabbed object is rotating, return
-	if (bIsToyRotating)
-		return;
-
-	// If there is no grabbed object, return
-	if (GrabbedToyPiece == nullptr)
-		return;
-
-	int RotationDirection;
-	if (AxisValue > JOYSTICK_TRESHOLD) // Joystick up case
-		RotationDirection = 1;
-	else if (AxisValue < JOYSTICK_TRESHOLD * -1) // Joystick down case
-		RotationDirection = -1;
-	else
-		return;
-
-	bIsToyRotating = true;
-
-	ToyNextRot = FRotator(ToyStartRot.Pitch, ToyStartRot.Yaw, ToyStartRot.Roll + (90 * RotationDirection));
-	RotateToy(FRotator(90 * RotationDirection, 0, 0));
 }
 
 // Called to bind functionality to input
@@ -379,7 +378,6 @@ void AAFA_PawnMechanicalArm::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	PlayerInputComponent->BindAxis("MoveForward", this, &AAFA_PawnMechanicalArm::OnMoveForward);
 	PlayerInputComponent->BindAxis("MoveUp", this, &AAFA_PawnMechanicalArm::OnMoveUp);
 	PlayerInputComponent->BindAxis("Rotate", this, &AAFA_PawnMechanicalArm::OnRotateClaw);
-	PlayerInputComponent->BindAxis("RotateToyRoll", this, &AAFA_PawnMechanicalArm::OnRequestRotateToyRoll);
-	PlayerInputComponent->BindAxis("RotateToyPitch", this, &AAFA_PawnMechanicalArm::OnRequestRotateToyPitch);
+	PlayerInputComponent->BindAxis("RotateToy", this, &AAFA_PawnMechanicalArm::OnRequestRotateToy);
 	PlayerInputComponent->BindAction("GrabDrop", IE_Pressed, this, &AAFA_PawnMechanicalArm::GrabDropObject);
 }
