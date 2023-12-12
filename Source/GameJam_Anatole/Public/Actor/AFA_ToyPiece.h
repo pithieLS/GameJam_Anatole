@@ -23,12 +23,21 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	void CreateAttachPoints();
+
+	// Called when a property change
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override; // Call Constructor when AttachPointsNumber is changed
+#endif
+
+	// Toy piece properties
+	UPROPERTY(EditDefaultsOnly, Category = "ToyPiece Properties")
+	int32 AttachPointsNumber;
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* PieceMesh;
-	UPROPERTY(EditDefaultsOnly)
-	USphereComponent* AttachPoint1;
+	TArray<USphereComponent*> AttachPoints;
 
 public:	
 	// Called every frame

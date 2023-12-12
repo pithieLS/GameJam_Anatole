@@ -7,7 +7,7 @@
 #include "Components/TimelineComponent.h"
 #include "AFA_PawnMechanicalArm.generated.h"
 
-#define JOYSTICK_TRESHOLD 0.f
+#define JOYSTICK_TRESHOLD 0.5f
 
 class UPhysicsHandleComponent;
 class UBoxComponent;
@@ -27,7 +27,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	bool CheckClawCollision(FVector Direction);
+	bool CheckClawCollision(FVector Direction) const;
 
 	// Toy rotation related functions
 	void RotateToy(FRotator RotationToAdd);
@@ -42,8 +42,7 @@ protected:
 	void OnMoveForward(float AxisValue);
 	void OnRotateClaw(float AxisValue);
 	void GrabDropObject();
-	void OnRequestRotateToyPitch(float AxisValue);
-	void OnRequestRotateToyRoll(float AxisValue);
+	void OnRequestRotateToy(float AxisValue);
 
 	// Const variables TEMP
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
