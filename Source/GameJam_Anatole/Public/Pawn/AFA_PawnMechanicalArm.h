@@ -23,6 +23,9 @@ public:
 	// Sets default values for this pawn's properties
 	AAFA_PawnMechanicalArm();
 
+	// Getters
+	UPhysicsHandleComponent* GetPhysicHandle() { return PhysicHandle; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -41,8 +44,10 @@ protected:
 	void OnMoveUp(float AxisValue);
 	void OnMoveForward(float AxisValue);
 	void OnRotateClaw(float AxisValue);
-	void GrabDropObject();
 	void OnRequestRotateToy(float AxisValue);
+	void GrabDropObject();
+	void WeldObjects();
+	void UnWeldObjects();
 
 	// Const variables TEMP
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")

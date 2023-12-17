@@ -6,6 +6,7 @@
 #include "Core/AFA_PlayerController.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"///////////////////////////////
 #include "Actor/AFA_ToyPiece.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 
@@ -118,7 +119,7 @@ bool AAFA_PawnMechanicalArm::CheckClawCollision(FVector Direction) const
 
 void AAFA_PawnMechanicalArm::RotateToy(FRotator RotationToAdd)
 {
-	ToyStartRot = GrabbedToyPiece->GetActorRotation();
+	ToyStartRot = GrabPoint->GetComponentRotation();
 
 	// Avoid Gimbal lock
 	FQuat CurrentQuat = FQuat(ToyStartRot);
@@ -140,7 +141,7 @@ void AAFA_PawnMechanicalArm::HandleToyRotation(float TLValue)
 	const FQuat NewQuat = FQuat::Slerp(FQuat(ToyStartRot), FQuat(ToyNextRot), TLValue);
 	const FRotator NewRotation = NewQuat.Rotator();
 
-	GrabbedToyPiece->SetActorRotation(NewRotation);
+	GrabPoint->SetWorldRotation(NewRotation);
 }
 
 void AAFA_PawnMechanicalArm::OnRotateFinished()
@@ -162,12 +163,8 @@ void AAFA_PawnMechanicalArm::Tick(float DeltaTime)
 
 	if (GrabbedToyPiece)
 	{
-		// Avoid ToyPiece from rotating because of it's angular velocity
-		GrabbedToyPiece->GetPieceMesh()->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
-
 		// Avoid the cube rotation be changed when colliding with anything
-		if (!bIsToyRotating)
-			GrabbedToyPiece->SetActorRotation(ToyNextRot);
+		GrabbedToyPiece->GetMasterPiece()->SetActorRotation(GrabPoint->GetComponentRotation());
 	}
 
 }
@@ -291,12 +288,17 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 
 void AAFA_PawnMechanicalArm::GrabDropObject()
 {
+											// If a toy piece is grabbed, drop it
 	if (GrabbedToyPiece != nullptr)
 	{
 		PhysicHandle->ReleaseComponent();
+		GrabbedToyPiece->ArmAttachedTo = nullptr;
 		GrabbedToyPiece = nullptr;
+		GrabPoint->SetWorldRotation(FRotator::ZeroRotator);
 		return;
 	}
+
+											// If no toy piece grabbed, grab it
 
 	// Get all overlapping actors
 	TArray<AActor*> OverlappingActors;
@@ -307,7 +309,8 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	{
 		if (AAFA_ToyPiece* CastedActor = Cast<AAFA_ToyPiece>(Actor)) // Check if the overlapped actor is a toy
 		{
-			GrabbedToyPiece = CastedActor;
+			GrabbedToyPiece = CastedActor;//CastedActor->GetParentPiece();
+			GrabbedToyPiece->ArmAttachedTo = this;
 			break;
 		}
 	}
@@ -317,9 +320,43 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 		// The PhysicHandle needs to have a primitive component so cast the root component
 		UPrimitiveComponent* RootPrimitiveComponent = Cast<UPrimitiveComponent>(GrabbedToyPiece->GetRootComponent());
 
-		PhysicHandle->GrabComponentAtLocation(RootPrimitiveComponent, NAME_None, GrabbedToyPiece->GetActorLocation());
-		GrabbedToyPiece->SetActorRotation(FRotator(0, 0, 0));
+		PhysicHandle->GrabComponentAtLocation(RootPrimitiveComponent, NAME_None, GrabbedToyPiece->GetActorLocation()); // TODO: Add the withrotation and put in rotation the closest to 0, 90, 180, 270
+		GrabbedToyPiece->GetMasterPiece()->SetActorRotation(FRotator::ZeroRotator);
 	}
+}
+
+void AAFA_PawnMechanicalArm::WeldObjects()
+{
+	if (GrabbedToyPiece == nullptr)
+		return;
+
+	TArray<AAFA_ToyPiece*> AttachedPieces = GrabbedToyPiece->GetAllAttachedPieces();
+	for (AAFA_ToyPiece* ToyPiece : AttachedPieces)
+	{
+		AAFA_ToyPiece* _OverlappedToyPiece = ToyPiece->GetOverlappedToyPieceAttachedPoint().Key;
+
+		if (_OverlappedToyPiece == nullptr)
+			continue;
+		if(AttachedPieces.Contains(_OverlappedToyPiece))
+			continue;
+
+		_OverlappedToyPiece->AttachToToyPiece(ToyPiece);
+		break;
+	}
+}
+
+void AAFA_PawnMechanicalArm::UnWeldObjects()
+{
+	if (GrabbedToyPiece == nullptr)
+		return;
+
+	TArray<AAFA_ToyPiece*> AttachedPieces = GrabbedToyPiece->GetAllAttachedPieces();
+	for (AAFA_ToyPiece* ToyPiece : AttachedPieces)
+	{
+		ToyPiece->DetachFromToyPiece();
+	}
+
+	GrabbedToyPiece = nullptr;
 }
 
 void AAFA_PawnMechanicalArm::OnRequestRotateToy(float AxisValue)
@@ -380,4 +417,6 @@ void AAFA_PawnMechanicalArm::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	PlayerInputComponent->BindAxis("Rotate", this, &AAFA_PawnMechanicalArm::OnRotateClaw);
 	PlayerInputComponent->BindAxis("RotateToy", this, &AAFA_PawnMechanicalArm::OnRequestRotateToy);
 	PlayerInputComponent->BindAction("GrabDrop", IE_Pressed, this, &AAFA_PawnMechanicalArm::GrabDropObject);
+	PlayerInputComponent->BindAction("WeldObjects", IE_Pressed, this, &AAFA_PawnMechanicalArm::WeldObjects);
+	PlayerInputComponent->BindAction("UnWeldObjects", IE_Pressed, this, &AAFA_PawnMechanicalArm::UnWeldObjects);
 }

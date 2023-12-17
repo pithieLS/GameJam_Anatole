@@ -3,6 +3,8 @@
 
 #include "Actor/AFA_ToyPiece.h"
 #include <Components/SphereComponent.h>
+#include "Pawn/AFA_PawnMechanicalArm.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
 // Sets default values
 AAFA_ToyPiece::AAFA_ToyPiece()
@@ -14,8 +16,12 @@ AAFA_ToyPiece::AAFA_ToyPiece()
 	if (!ensure(PieceMesh != nullptr))
 		return;
 	SetRootComponent(PieceMesh);
+	PieceMesh->SetSimulatePhysics(true);
 
-	CreateAttachPoints();
+	AttachPointsParent = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoints"));
+	if (!ensure(AttachPointsParent != nullptr))
+		return;
+	AttachPointsParent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -23,46 +29,147 @@ void AAFA_ToyPiece::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Put all attach points in an array ///and bind them to OnBeginOverlap function
+	TArray<USceneComponent*> ChildComponents;
+	AttachPointsParent->GetChildrenComponents(true, ChildComponents);
+	for (USceneComponent* Child : ChildComponents)
+		if (USphereComponent* AttachPoint = Cast<USphereComponent>(Child))
+		{
+			AttachPointsToPieceMap.Add(AttachPoint, nullptr);
+			//AttachPoint->OnComponentBeginOverlap.AddDynamic(this, &AAFA_ToyPiece::OnAttachPointOverlapped);
+
+		}
 }
 
-void AAFA_ToyPiece::CreateAttachPoints()
+TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAttachedPoint()
 {
-	for (USphereComponent* SphereComponent : AttachPoints)
+	TArray<USphereComponent*> AttachPointsArray;
+	AttachPointsToPieceMap.GenerateKeyArray(AttachPointsArray);
+
+	TArray<AAFA_ToyPiece*> AlreadyAttachedPieces;
+	AttachPointsToPieceMap.GenerateValueArray(AlreadyAttachedPieces);
+
+	for (USphereComponent* _AttachPoint : AttachPointsArray)
 	{
-		SphereComponent->DestroyComponent();
+		USphereComponent* aaa = _AttachPoint;
+		TArray<UPrimitiveComponent*> OverlappingComponents;
+		_AttachPoint->GetOverlappingComponents(OverlappingComponents);
+
+		for (UPrimitiveComponent* Component : OverlappingComponents)
+			if (USphereComponent* OverlappedAttachPoint = Cast<USphereComponent>(Component))
+			{
+				AAFA_ToyPiece* CastedToyPiece = Cast<AAFA_ToyPiece>(OverlappedAttachPoint->GetOwner());
+				if(AlreadyAttachedPieces.Contains(CastedToyPiece))
+					continue;
+
+				return { CastedToyPiece, OverlappedAttachPoint };
+			}
 	}
-	AttachPoints.Empty();
 
-	for (int32 Index = 0; Index < AttachPointsNumber; Index++)
-	{
-		FString NewAttachPointName = "AttachPoint";
-		NewAttachPointName.Append(FString::FromInt(Index));
-
-		USphereComponent* NewAttachPoint = NewObject<USphereComponent>(this);
-		if (!ensure(NewAttachPoint != nullptr))
-			return;
-		NewAttachPoint->RegisterComponent();
-
-		NewAttachPoint->SetupAttachment(RootComponent);
-
-		AttachPoints.Add(NewAttachPoint);
-	}
+	return {nullptr, nullptr};
 }
 
-#if WITH_EDITOR
-void AAFA_ToyPiece::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+TArray<AAFA_ToyPiece*> AAFA_ToyPiece::GetAllAttachedPieces()
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(AAFA_ToyPiece, AttachPointsNumber))
-		CreateAttachPoints();
+	TArray<AAFA_ToyPiece*> AttachedPieces;
+	AAFA_ToyPiece* MasterPiece = GetMasterPiece();
+	AttachedPieces.Add(MasterPiece);
+	MasterPiece->GetAttachedPieces(AttachedPieces);
+	return AttachedPieces;
 }
-#endif
+
+void AAFA_ToyPiece::GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces)
+{
+	for (TPair<USphereComponent*, AAFA_ToyPiece*> AttachPointAndPiece : AttachPointsToPieceMap)
+	{
+		if(AttachPointAndPiece.Value == nullptr)
+			continue;
+		if(OutAttachedPieces.Contains(AttachPointAndPiece.Value))
+			continue;
+
+		OutAttachedPieces.Add(AttachPointAndPiece.Value);
+		AttachPointAndPiece.Value->GetAttachedPieces(OutAttachedPieces);
+	}
+}
+
+void AAFA_ToyPiece::DetachFromArm()
+{
+	if (ArmAttachedTo == nullptr)
+		return;
+
+	ArmAttachedTo->GetPhysicHandle()->ReleaseComponent();
+}
+
+void AAFA_ToyPiece::DetachFromToyPiece()
+{
+	if(ArmAttachedTo)
+		DetachFromArm();
+
+	PieceMesh->SetCollisionObjectType(ECC_WorldDynamic);
+	PieceMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	PieceMesh->SetSimulatePhysics(true);
+	DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+
+	for (TPair<USphereComponent*, AAFA_ToyPiece*> AttachPointPieces : AttachPointsToPieceMap)
+	{
+		AttachPointsToPieceMap.Add(AttachPointPieces.Key, nullptr);
+	}
+
+	ParentPiece = nullptr;
+}
+
+void AAFA_ToyPiece::AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo)
+{
+	PieceMesh->SetSimulatePhysics(false);
+	FAttachmentTransformRules AttachTransformRules = FAttachmentTransformRules::KeepWorldTransform;
+	AttachTransformRules.LocationRule = EAttachmentRule::SnapToTarget;
+	AttachTransformRules.bWeldSimulatedBodies = true;
+
+	USphereComponent* SelfAttachPoint = ToyPieceToAttachTo->GetOverlappedToyPieceAttachedPoint().Value;
+	USphereComponent* OtherAttachPoint = GetOverlappedToyPieceAttachedPoint().Value;
+
+	AttachPointsToPieceMap.Add(SelfAttachPoint, ToyPieceToAttachTo);
+	ToyPieceToAttachTo->AttachPointsToPieceMap.Add(OtherAttachPoint, this);
+
+	FVector SelfAttachPointLoc = SelfAttachPoint->GetRelativeLocation();
+	FVector OtherAttachPointLoc = OtherAttachPoint->GetRelativeLocation();
+	AttachToActor(ToyPieceToAttachTo, AttachTransformRules);
+	PieceMesh->SetRelativeLocation(OtherAttachPoint->GetRelativeLocation() * 2);
+
+	SetToyGroupCollisionType(ECC_GameTraceChannel1);
+	SetToyGroupCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+
+	ParentPiece = ToyPieceToAttachTo;
+}
+
+void AAFA_ToyPiece::SetToyGroupCollisionType(ECollisionChannel ChannelName)
+{
+	AAFA_ToyPiece* MasterPiece = GetMasterPiece();
+	for (AAFA_ToyPiece* _ToyPiece : MasterPiece->GetAllAttachedPieces())
+		_ToyPiece->PieceMesh->SetCollisionObjectType(ChannelName);
+}
+
+void AAFA_ToyPiece::SetToyGroupCollisionResponseToChannel(ECollisionChannel ChannelName, ECollisionResponse CollisionResponse)
+{
+	AAFA_ToyPiece* MasterPiece = GetMasterPiece();
+	for (AAFA_ToyPiece* _ToyPiece : MasterPiece->GetAllAttachedPieces())
+		_ToyPiece->PieceMesh->SetCollisionResponseToChannel(ChannelName, CollisionResponse);
+}
+
+AAFA_ToyPiece* AAFA_ToyPiece::GetMasterPiece()
+{
+	if (ParentPiece == nullptr)
+		return this;
+
+	return ParentPiece->GetMasterPiece();
+}
 
 // Called every frame
 void AAFA_ToyPiece::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Avoid ToyPiece from rotating because of it's angular velocity
+	PieceMesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 }
 

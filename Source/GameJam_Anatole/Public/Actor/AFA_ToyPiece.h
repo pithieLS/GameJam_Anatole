@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Pawn/AFA_PawnMechanicalArm.h"
 #include "AFA_ToyPiece.generated.h"
 
 class USphereComponent;
@@ -19,25 +20,35 @@ public:
 
 	// Getters
 	UStaticMeshComponent* GetPieceMesh() { return PieceMesh; }
+	TArray<AAFA_ToyPiece*> GetAllAttachedPieces();
+
+	// Attach related func/method public
+	void DetachFromArm();
+	void DetachFromToyPiece();
+	void AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo);
+	void SetToyGroupCollisionType(ECollisionChannel ChannelName);
+	void SetToyGroupCollisionResponseToChannel(ECollisionChannel ChannelName, ECollisionResponse CollisionResponse);
+	AAFA_ToyPiece* GetMasterPiece();
+	TPair<AAFA_ToyPiece*, USphereComponent*> GetOverlappedToyPieceAttachedPoint(); // Return Key = Toy Piece, Value = AttachPoint
+
+	// Attach related
+	TPair<AAFA_ToyPiece*, USphereComponent*> OverlappedToyPieceAndAttachPoint;
+	AAFA_PawnMechanicalArm* ArmAttachedTo;
+	AAFA_ToyPiece* ParentPiece;
+	TMap<USphereComponent*, AAFA_ToyPiece*> AttachPointsToPieceMap;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	void CreateAttachPoints();
 
-	// Called when a property change
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override; // Call Constructor when AttachPointsNumber is changed
-#endif
-
-	// Toy piece properties
-	UPROPERTY(EditDefaultsOnly, Category = "ToyPiece Properties")
-	int32 AttachPointsNumber;
+	// Attach related func/methods protected
+	void GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces);
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* PieceMesh;
-	TArray<USphereComponent*> AttachPoints;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	USceneComponent* AttachPointsParent;
 
 public:	
 	// Called every frame
