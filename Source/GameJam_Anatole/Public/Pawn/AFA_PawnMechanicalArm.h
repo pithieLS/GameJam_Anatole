@@ -34,6 +34,7 @@ protected:
 
 	// Toy rotation related functions
 	void RotateToy(FRotator RotationToAdd);
+	int32 FindClosestRotationForAxis(const float AxisRotation); // Get the closest axis value from the possible rotations of the object while grabbed
 	UFUNCTION()
 	void HandleToyRotation(float TLValue);
 	UFUNCTION()
@@ -106,6 +107,7 @@ protected:
 	FRotator ToyNextRot = FRotator(0, 0, 0);
 	FRotator ToyStartRot;
 	int32 RotAmount = 90;
+	TArray<int32> PossibleRotAngles{-180, -90, 0, 90, 180};
 
 public:	
 	// Called every frame

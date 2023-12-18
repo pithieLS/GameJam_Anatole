@@ -29,8 +29,8 @@ public:
 	void SetToyGroupCollisionType(ECollisionChannel ChannelName);
 	void SetToyGroupCollisionResponseToChannel(ECollisionChannel ChannelName, ECollisionResponse CollisionResponse);
 	AAFA_ToyPiece* GetMasterPiece();
-	TPair<AAFA_ToyPiece*, USphereComponent*> GetOverlappedToyPieceAttachedPoint(); // Return Key = Toy Piece, Value = AttachPoint
-
+	TPair<AAFA_ToyPiece*, USphereComponent*> GetOverlappedToyPieceAttachedPoint(AAFA_ToyPiece* TargetPiece) const; /* Return Key = Toy Piece, Value = AttachPoint
+																												    Put nullptr in param if you want a general search*/
 	// Attach related
 	TPair<AAFA_ToyPiece*, USphereComponent*> OverlappedToyPieceAndAttachPoint;
 	AAFA_PawnMechanicalArm* ArmAttachedTo;
@@ -42,7 +42,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Attach related func/methods protected
-	void GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces);
+	void GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces) const;
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)

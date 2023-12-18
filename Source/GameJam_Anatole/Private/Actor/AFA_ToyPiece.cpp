@@ -34,14 +34,10 @@ void AAFA_ToyPiece::BeginPlay()
 	AttachPointsParent->GetChildrenComponents(true, ChildComponents);
 	for (USceneComponent* Child : ChildComponents)
 		if (USphereComponent* AttachPoint = Cast<USphereComponent>(Child))
-		{
 			AttachPointsToPieceMap.Add(AttachPoint, nullptr);
-			//AttachPoint->OnComponentBeginOverlap.AddDynamic(this, &AAFA_ToyPiece::OnAttachPointOverlapped);
-
-		}
 }
 
-TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAttachedPoint()
+TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAttachedPoint(AAFA_ToyPiece* TargetPiece) const
 {
 	TArray<USphereComponent*> AttachPointsArray;
 	AttachPointsToPieceMap.GenerateKeyArray(AttachPointsArray);
@@ -49,9 +45,8 @@ TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAtt
 	TArray<AAFA_ToyPiece*> AlreadyAttachedPieces;
 	AttachPointsToPieceMap.GenerateValueArray(AlreadyAttachedPieces);
 
-	for (USphereComponent* _AttachPoint : AttachPointsArray)
+	for (const USphereComponent* _AttachPoint : AttachPointsArray)
 	{
-		USphereComponent* aaa = _AttachPoint;
 		TArray<UPrimitiveComponent*> OverlappingComponents;
 		_AttachPoint->GetOverlappingComponents(OverlappingComponents);
 
@@ -59,6 +54,9 @@ TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAtt
 			if (USphereComponent* OverlappedAttachPoint = Cast<USphereComponent>(Component))
 			{
 				AAFA_ToyPiece* CastedToyPiece = Cast<AAFA_ToyPiece>(OverlappedAttachPoint->GetOwner());
+
+				if(TargetPiece != nullptr && CastedToyPiece != TargetPiece)
+					continue;
 				if(AlreadyAttachedPieces.Contains(CastedToyPiece))
 					continue;
 
@@ -78,9 +76,9 @@ TArray<AAFA_ToyPiece*> AAFA_ToyPiece::GetAllAttachedPieces()
 	return AttachedPieces;
 }
 
-void AAFA_ToyPiece::GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces)
+void AAFA_ToyPiece::GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces) const
 {
-	for (TPair<USphereComponent*, AAFA_ToyPiece*> AttachPointAndPiece : AttachPointsToPieceMap)
+	for (const TPair<USphereComponent*, AAFA_ToyPiece*> AttachPointAndPiece : AttachPointsToPieceMap)
 	{
 		if(AttachPointAndPiece.Value == nullptr)
 			continue;
@@ -120,19 +118,22 @@ void AAFA_ToyPiece::DetachFromToyPiece()
 
 void AAFA_ToyPiece::AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo)
 {
+	// Prepare the mesh for attachment
 	PieceMesh->SetSimulatePhysics(false);
 	FAttachmentTransformRules AttachTransformRules = FAttachmentTransformRules::KeepWorldTransform;
 	AttachTransformRules.LocationRule = EAttachmentRule::SnapToTarget;
 	AttachTransformRules.bWeldSimulatedBodies = true;
 
-	USphereComponent* SelfAttachPoint = ToyPieceToAttachTo->GetOverlappedToyPieceAttachedPoint().Value;
-	USphereComponent* OtherAttachPoint = GetOverlappedToyPieceAttachedPoint().Value;
+	USphereComponent* SelfAttachPoint = ToyPieceToAttachTo->GetOverlappedToyPieceAttachedPoint(nullptr).Value;
+	USphereComponent* OtherAttachPoint = GetOverlappedToyPieceAttachedPoint(ToyPieceToAttachTo).Value;
 
+	// Set attached toy piece to both attach points
 	AttachPointsToPieceMap.Add(SelfAttachPoint, ToyPieceToAttachTo);
 	ToyPieceToAttachTo->AttachPointsToPieceMap.Add(OtherAttachPoint, this);
 
-	FVector SelfAttachPointLoc = SelfAttachPoint->GetRelativeLocation();
-	FVector OtherAttachPointLoc = OtherAttachPoint->GetRelativeLocation();
+	// Calculate the attach position and attach to ToyPieceToAttachTo
+	const FVector SelfAttachPointLoc = SelfAttachPoint->GetRelativeLocation();
+	const FVector OtherAttachPointLoc = OtherAttachPoint->GetRelativeLocation();
 	AttachToActor(ToyPieceToAttachTo, AttachTransformRules);
 	PieceMesh->SetRelativeLocation(OtherAttachPoint->GetRelativeLocation() * 2);
 
@@ -170,6 +171,6 @@ void AAFA_ToyPiece::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Avoid ToyPiece from rotating because of it's angular velocity
-	PieceMesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+	//PieceMesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 }
 
