@@ -39,6 +39,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class UArrowComponent* ConvoyerDir;
 
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TSubclassOf<AAFA_ToyPiece>> PiecesAvailable;
+
 	UPROPERTY(EditAnywhere)
 	class USceneComponent* PiecesSpawnPoint;
 
