@@ -18,7 +18,7 @@ AAFA_ToyPiece::AAFA_ToyPiece()
 	SetRootComponent(PieceMesh);
 	PieceMesh->SetSimulatePhysics(true);
 
-	AttachPointsParent = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPoints"));
+	AttachPointsParent = CreateDefaultSubobject<USceneComponent>(TEXT("AttachPointsParent"));
 	if (!ensure(AttachPointsParent != nullptr))
 		return;
 	AttachPointsParent->SetupAttachment(RootComponent);
@@ -35,6 +35,41 @@ void AAFA_ToyPiece::BeginPlay()
 	for (USceneComponent* Child : ChildComponents)
 		if (USphereComponent* AttachPoint = Cast<USphereComponent>(Child))
 			AttachPointsToPieceMap.Add(AttachPoint, nullptr);
+
+	// Initialize attachment rules for welding
+	AttachTransformRules.LocationRule = EAttachmentRule::SnapToTarget;
+	AttachTransformRules.bWeldSimulatedBodies = true;
+}
+
+int32 AAFA_ToyPiece::FindClosestRotationForAxis(const float AxisRotation)
+{
+	// Initialize variables to keep track of the closest rotation and its angular distance
+	int32 ClosestRotation;
+	int32 MinAngularDistance = INT32_MAX;
+
+	for (const int32 PossibleRotation : PossibleRotAngles)
+	{
+		float AngularDistance = FMath::Abs(FRotator::NormalizeAxis(PossibleRotation - AxisRotation));
+
+		// Update the closest rotation if the current rotation is closer
+		if (AngularDistance < MinAngularDistance)
+		{
+			MinAngularDistance = AngularDistance;
+			ClosestRotation = PossibleRotation;
+		}
+	}
+
+	return ClosestRotation;
+}
+
+FRotator AAFA_ToyPiece::GetClosestRotation()
+{
+	FRotator PieceRot;
+	PieceRot.Pitch = FindClosestRotationForAxis(GetActorRotation().Pitch);
+	PieceRot.Yaw = FindClosestRotationForAxis(GetActorRotation().Yaw);
+	PieceRot.Roll = FindClosestRotationForAxis(GetActorRotation().Roll);
+
+	return PieceRot;
 }
 
 TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAttachedPoint(AAFA_ToyPiece* TargetPiece) const
@@ -118,29 +153,75 @@ void AAFA_ToyPiece::DetachFromToyPiece()
 
 void AAFA_ToyPiece::AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo)
 {
+	AAFA_ToyPiece* MasterPiece = GetMasterPiece();
+	if (!ensure(MasterPiece != nullptr))
+		return;
+
 	// Prepare the mesh for attachment
 	PieceMesh->SetSimulatePhysics(false);
-	FAttachmentTransformRules AttachTransformRules = FAttachmentTransformRules::KeepWorldTransform;
-	AttachTransformRules.LocationRule = EAttachmentRule::SnapToTarget;
-	AttachTransformRules.bWeldSimulatedBodies = true;
 
 	USphereComponent* SelfAttachPoint = ToyPieceToAttachTo->GetOverlappedToyPieceAttachedPoint(nullptr).Value;
-	USphereComponent* OtherAttachPoint = GetOverlappedToyPieceAttachedPoint(ToyPieceToAttachTo).Value;
+	USphereComponent* TargetAttachPoint = GetOverlappedToyPieceAttachedPoint(ToyPieceToAttachTo).Value;
 
 	// Set attached toy piece to both attach points
 	AttachPointsToPieceMap.Add(SelfAttachPoint, ToyPieceToAttachTo);
-	ToyPieceToAttachTo->AttachPointsToPieceMap.Add(OtherAttachPoint, this);
+	ToyPieceToAttachTo->AttachPointsToPieceMap.Add(TargetAttachPoint, this);
 
 	// Calculate the attach position and attach to ToyPieceToAttachTo
-	const FVector SelfAttachPointLoc = SelfAttachPoint->GetRelativeLocation();
-	const FVector OtherAttachPointLoc = OtherAttachPoint->GetRelativeLocation();
+	FRotator PieceRot = GetClosestRotation();
+	SetActorRotation(PieceRot);
 	AttachToActor(ToyPieceToAttachTo, AttachTransformRules);
-	PieceMesh->SetRelativeLocation(OtherAttachPoint->GetRelativeLocation() * 2);
+	FVector DistanceRootAndAttach = GetActorLocation() - SelfAttachPoint->GetComponentLocation();
+	SetActorLocation(TargetAttachPoint->GetComponentLocation() + DistanceRootAndAttach);
 
-	SetToyGroupCollisionType(ECC_GameTraceChannel1);
-	SetToyGroupCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+	//SetToyGroupCollisionType(ECC_GameTraceChannel1);
+	//SetToyGroupCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
 
 	ParentPiece = ToyPieceToAttachTo;
+}
+
+void AAFA_ToyPiece::AttachGroupToToyPiece(USphereComponent* AttachPointToAttach, USphereComponent* TargetAttachPoint)
+{
+	AAFA_ToyPiece* MasterPiece = GetMasterPiece();
+	if (!ensure(MasterPiece != nullptr))
+		return;
+	AAFA_ToyPiece* TargetPiece = Cast<AAFA_ToyPiece>(TargetAttachPoint->GetOwner());
+	if (!ensure(TargetPiece != nullptr))
+		return;
+
+	// Set attached toy piece to both attach points
+	AttachPointsToPieceMap.Add(AttachPointToAttach, TargetPiece);
+	TargetPiece->AttachPointsToPieceMap.Add(TargetAttachPoint, this);
+
+	// Attach the actor and calculate the attach position
+	FRotator PieceRot = MasterPiece->GetClosestRotation();
+	MasterPiece->SetActorRotation(PieceRot);
+	MasterPiece->AttachToActor(TargetPiece, AttachTransformRules);
+	MasterPiece->PieceMesh->SetSimulatePhysics(false);
+	FVector DistanceAttachedPieceAndMasterPiece = MasterPiece->GetActorLocation() - GetActorLocation();
+	FVector DistanceRootAndAttach = GetActorLocation() - AttachPointToAttach->GetComponentLocation();
+	FVector AttachLocation = TargetAttachPoint->GetComponentLocation() + DistanceRootAndAttach;
+	//FRotator PieceRot = MasterPiece->GetClosestRotation();
+	//MasterPiece->SetActorRotation(PieceRot);
+	MasterPiece->SetActorLocation(AttachLocation + DistanceAttachedPieceAndMasterPiece);
+
+	// Update collision because a bug cause the collisions to stay in place while the mesh is at another location
+	for (AAFA_ToyPiece* _ToyPiece : MasterPiece->GetAllAttachedPieces())
+	{
+		_ToyPiece->GetPieceMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		_ToyPiece->GetPieceMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+
+	//SetToyGroupCollisionType(ECC_GameTraceChannel1);
+	//SetToyGroupCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
+
+	MasterPiece->ParentPiece = TargetPiece;
+
+	for (AAFA_ToyPiece* _ToyPiece : MasterPiece->GetAllAttachedPieces())
+	{
+		FString ActorName = _ToyPiece->GetName();
+		UE_LOG(LogTemp, Warning, TEXT("Actor Name: %s"), *ActorName);
+	}
 }
 
 void AAFA_ToyPiece::SetToyGroupCollisionType(ECollisionChannel ChannelName)

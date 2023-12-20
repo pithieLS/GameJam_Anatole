@@ -14,6 +14,8 @@ class UBoxComponent;
 class AAFA_ToyPiece;
 class UPhysicsConstraintComponent;
 
+class UAFA_ToyVerifier;////////////////////////////////////////////////////////////////////////////////////////
+
 UCLASS()
 class GAMEJAM_ANATOLE_API AAFA_PawnMechanicalArm : public APawn
 {
@@ -26,15 +28,19 @@ public:
 	// Getters
 	UPhysicsHandleComponent* GetPhysicHandle() { return PhysicHandle; }
 
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UAFA_ToyVerifier> testverifier;///////////////////////////////////////////////////////////////////////////////////////
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	bool CheckClawCollision(FVector Direction) const;
+	void AttachToClaw(AAFA_ToyPiece* ToyPieceToAttach);
 
 	// Toy rotation related functions
 	void RotateToy(FRotator RotationToAdd);
-	int32 FindClosestRotationForAxis(const float AxisRotation); // Get the closest axis value from the possible rotations of the object while grabbed
 	UFUNCTION()
 	void HandleToyRotation(float TLValue);
 	UFUNCTION()
@@ -107,7 +113,6 @@ protected:
 	FRotator ToyNextRot = FRotator(0, 0, 0);
 	FRotator ToyStartRot;
 	int32 RotAmount = 90;
-	TArray<int32> PossibleRotAngles{-180, -90, 0, 90, 180};
 
 public:	
 	// Called every frame
