@@ -12,6 +12,7 @@ AAFA_GameMode::AAFA_GameMode()
 
 void AAFA_GameMode::BeginPlay()
 {
+	Super::BeginPlay();
 	//Create PlayerController for second player;
 	APlayerController* GamepadController = UGameplayStatics::CreatePlayer(this, -1, true);
 
