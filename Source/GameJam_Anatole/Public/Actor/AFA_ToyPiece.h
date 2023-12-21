@@ -18,6 +18,8 @@ public:
 	// Sets default values for this actor's properties
 	AAFA_ToyPiece();
 
+	FRotator GetClosestRotation(); // Get closest rotation from the ValidRotation array
+
 	// Getters
 	UStaticMeshComponent* GetPieceMesh() { return PieceMesh; }
 	TArray<AAFA_ToyPiece*> GetAllAttachedPieces();
@@ -26,6 +28,7 @@ public:
 	void DetachFromArm();
 	void DetachFromToyPiece();
 	void AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo);
+	void AttachGroupToToyPiece(USphereComponent* AttachPointToAttach, USphereComponent* TargetAttachPoint);
 	void SetToyGroupCollisionType(ECollisionChannel ChannelName);
 	void SetToyGroupCollisionResponseToChannel(ECollisionChannel ChannelName, ECollisionResponse CollisionResponse);
 	AAFA_ToyPiece* GetMasterPiece();
@@ -41,6 +44,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Get the closest axis value from the possible rotations of the object while grabbed
+	int32 FindClosestRotationForAxis(const float AxisRotation);
+
 	// Attach related func/methods protected
 	void GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces) const;
 
@@ -49,6 +55,11 @@ protected:
 	UStaticMeshComponent* PieceMesh;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	USceneComponent* AttachPointsParent;
+
+	// Properties
+	TArray<int32> PossibleRotAngles{ -180, -90, 0, 90, 180 };
+
+	FAttachmentTransformRules AttachTransformRules = FAttachmentTransformRules::KeepWorldTransform;
 
 public:	
 	// Called every frame

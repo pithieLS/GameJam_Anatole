@@ -9,6 +9,7 @@
 #include "Components/SphereComponent.h"///////////////////////////////
 #include "Actor/AFA_ToyPiece.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "Logic/AFA_ToyVerifier.h"////////////////////////////////////////////////////////////////////////////////////////
 
 AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 {
@@ -117,6 +118,13 @@ bool AAFA_PawnMechanicalArm::CheckClawCollision(FVector Direction) const
 	return bIsColliding;
 }
 
+void AAFA_PawnMechanicalArm::AttachToClaw(AAFA_ToyPiece* ToyPieceToAttach)
+{
+	// The PhysicHandle needs to have a primitive component so cast the root component
+	UPrimitiveComponent* RootPrimitiveComponent = Cast<UPrimitiveComponent>(ToyPieceToAttach->GetRootComponent());
+	PhysicHandle->GrabComponentAtLocationWithRotation(RootPrimitiveComponent, NAME_None, ToyPieceToAttach->GetActorLocation(), GrabPoint->GetComponentRotation());
+}
+
 void AAFA_PawnMechanicalArm::RotateToy(FRotator RotationToAdd)
 {
 	ToyStartRot = GrabPoint->GetComponentRotation();
@@ -128,27 +136,6 @@ void AAFA_PawnMechanicalArm::RotateToy(FRotator RotationToAdd)
 	ToyNextRot = NewQuat.Rotator();
 	
 	TimelineRot.PlayFromStart();
-}
-
-int32 AAFA_PawnMechanicalArm::FindClosestRotationForAxis(const float AxisRotation)
-{
-	// Initialize variables to keep track of the closest rotation and its angular distance
-	int32 ClosestRotation;
-	int32 MinAngularDistance = INT32_MAX;
-
-	for (const int32 PossibleRotation : PossibleRotAngles)
-	{
-		float AngularDistance = FMath::Abs(FRotator::NormalizeAxis(PossibleRotation - AxisRotation));
-
-		// Update the closest rotation if the current rotation is closer
-		if (AngularDistance < MinAngularDistance)
-		{
-			MinAngularDistance = AngularDistance;
-			ClosestRotation = PossibleRotation;
-		}
-	}
-
-	return ClosestRotation;
 }
 
 void AAFA_PawnMechanicalArm::HandleToyRotation(float TLValue)
@@ -181,6 +168,15 @@ void AAFA_PawnMechanicalArm::Tick(float DeltaTime)
 
 	// Set the timeline tick to the delta time
 	TimelineRot.TickTimeline(DeltaTime);
+
+	if (GrabbedToyPiece != nullptr)////////////////////////////////////////////////////////////////////////////////////////
+	{
+		UAFA_ToyVerifier* ToyVerifierCDO = Cast<UAFA_ToyVerifier>(testverifier->GetDefaultObject());
+		if (!ensure(ToyVerifierCDO != nullptr))
+			return;
+		bool aaa = ToyVerifierCDO->VerifyToy(GrabbedToyPiece);
+		UE_LOG(LogTemp, Warning, TEXT("MyBoolean value: %d"), aaa);
+	}
 }
 
 void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
@@ -329,19 +325,14 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 		}
 	}
 
+	// If a toy piece was found, set the master piece rotation to a valid rotation and grab it
 	if (GrabbedToyPiece != nullptr)
 	{
-		// The PhysicHandle needs to have a primitive component so cast the root component
-		UPrimitiveComponent* RootPrimitiveComponent = Cast<UPrimitiveComponent>(GrabbedToyPiece->GetRootComponent());
+		AAFA_ToyPiece* MasterPiece = GrabbedToyPiece->GetMasterPiece();
+		FRotator NewValidRotation = MasterPiece->GetClosestRotation();
+		MasterPiece->SetActorRotation(NewValidRotation);
 
-		// Calculate the rotation the GrabbedToyPiece's master should be to be the closest to a "valid" rotation
-		FRotator PieceRot;
-		PieceRot.Pitch = FindClosestRotationForAxis(GrabbedToyPiece->GetMasterPiece()->GetActorRotation().Pitch);
-		PieceRot.Yaw = FindClosestRotationForAxis(GrabbedToyPiece->GetMasterPiece()->GetActorRotation().Yaw);
-		PieceRot.Roll = FindClosestRotationForAxis(GrabbedToyPiece->GetMasterPiece()->GetActorRotation().Roll);
-
-		GrabbedToyPiece->GetMasterPiece()->SetActorRotation(PieceRot);
-		PhysicHandle->GrabComponentAtLocationWithRotation(RootPrimitiveComponent, NAME_None, GrabbedToyPiece->GetActorLocation(), GrabPoint->GetComponentRotation());
+		AttachToClaw(GrabbedToyPiece);
 	}
 }
 
@@ -353,14 +344,24 @@ void AAFA_PawnMechanicalArm::WeldObjects()
 	TArray<AAFA_ToyPiece*> AttachedPieces = GrabbedToyPiece->GetAllAttachedPieces();
 	for (AAFA_ToyPiece* ToyPiece : AttachedPieces)
 	{
-		AAFA_ToyPiece* _OverlappedToyPiece = ToyPiece->GetOverlappedToyPieceAttachedPoint(nullptr).Key;
+		TPair<AAFA_ToyPiece*, USphereComponent*> _OverlappedPieceAndAttachPoint = ToyPiece->GetOverlappedToyPieceAttachedPoint(nullptr);
+		AAFA_ToyPiece* _OverlappedToyPiece = _OverlappedPieceAndAttachPoint.Key;
 
 		if (_OverlappedToyPiece == nullptr)
 			continue;
 		if(AttachedPieces.Contains(_OverlappedToyPiece))
 			continue;
 
-		_OverlappedToyPiece->AttachToToyPiece(ToyPiece);
+		if (_OverlappedToyPiece->GetAllAttachedPieces().Num() > 1)
+		{
+			USphereComponent* AttachPointToAttach = ToyPiece->GetOverlappedToyPieceAttachedPoint(_OverlappedToyPiece).Value;
+			USphereComponent* TargetAttachPoint = _OverlappedToyPiece->GetOverlappedToyPieceAttachedPoint(ToyPiece).Value;
+
+			_OverlappedToyPiece->AttachGroupToToyPiece(AttachPointToAttach, TargetAttachPoint);
+			AttachToClaw(GrabbedToyPiece);
+		}
+		else
+			_OverlappedToyPiece->AttachToToyPiece(ToyPiece);
 		break;
 	}
 }

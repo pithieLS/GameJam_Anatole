@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Logic/AFA_ToyVerifier.h"
+#include "Actor/AFA_ToyPiece.h"
 #include "AFA_GameMode.generated.h"
 
 /**
