@@ -41,7 +41,7 @@ void AAFA_Conveyor::MoveObjects(float DeltaTime) {
 	ConvoyerCollider->GetOverlappingActors(OverlappingActors);
 	for (AActor* Piece : OverlappingActors)
 	{
-		if (Piece->GetClass() == ToyPieceClass) {
+		if (Cast<AAFA_ToyPiece>(Piece)) {
 			Piece->AddActorWorldOffset((DeltaTime * Speed) * ConvoyerDir->GetForwardVector());
 		}
 	}
@@ -49,14 +49,12 @@ void AAFA_Conveyor::MoveObjects(float DeltaTime) {
 
 void AAFA_Conveyor::SpawnPieces()
 {
-	/*int randomIndex = FMath::RandRange(0, PiecesAvailable.Num());
-	TSubclassOf<AAFA_ToyPiece> RandomPiece = PiecesAvailable[randomIndex];*/
+	int32 RandIndex = FMath::RandRange(0, PiecesAvailable.Num()-1);
+	TSubclassOf<AAFA_ToyPiece> RandomPieceClass = PiecesAvailable[RandIndex];
 	
-	AAFA_ToyPiece* CurrentToyPiece = GetWorld()->SpawnActor<AAFA_ToyPiece>(ToyPieceClass);
-	if (!ensure(CurrentToyPiece != nullptr)) {
+	AAFA_ToyPiece* SpawnedPiece = GetWorld()->SpawnActor<AAFA_ToyPiece>(RandomPieceClass, PiecesSpawnPoint->GetComponentLocation(), FRotator::ZeroRotator);
+	if (!ensure(SpawnedPiece != nullptr))
 		return;
-	}
-	CurrentToyPiece->SetActorLocation(PiecesSpawnPoint->GetComponentLocation());
 }
 
 void AAFA_Conveyor::BeginPlay()

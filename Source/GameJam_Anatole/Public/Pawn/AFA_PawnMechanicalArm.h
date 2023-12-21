@@ -14,8 +14,6 @@ class UBoxComponent;
 class AAFA_ToyPiece;
 class UPhysicsConstraintComponent;
 
-class UAFA_ToyVerifier;////////////////////////////////////////////////////////////////////////////////////////
-
 UCLASS()
 class GAMEJAM_ANATOLE_API AAFA_PawnMechanicalArm : public APawn
 {
@@ -25,12 +23,11 @@ public:
 	// Sets default values for this pawn's properties
 	AAFA_PawnMechanicalArm();
 
-	// Getters
+	// Getters & Setters
 	UPhysicsHandleComponent* GetPhysicHandle() { return PhysicHandle; }
-
 	
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UAFA_ToyVerifier> testverifier;///////////////////////////////////////////////////////////////////////////////////////
+	// Grab/Drop related
+	void DropToyPiece();
 
 protected:
 	// Called when the game starts or when spawned
@@ -58,11 +55,11 @@ protected:
 
 	// Const variables TEMP
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
-	int32 MAX_UP = 100;
+	int32 MAX_UP = 200;
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
 	int32 MAX_DOWN = -100;
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
-	int32 MAX_LEFT = -100;
+	int32 MAX_LEFT = -110;
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
 	int32 MAX_RIGHT = 100;
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
@@ -70,7 +67,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
 	int32 MAX_BACK = -100;
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
-	int32 MAX_ROLL = 0;
+	int32 MAX_ROLL = 150;
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
 	int32 MIN_ROLL = -150;
 	UPROPERTY(EditDefaultsOnly, Category = "Control properties | Control speeds")

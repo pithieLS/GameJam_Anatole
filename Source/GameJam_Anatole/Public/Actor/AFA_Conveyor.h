@@ -39,7 +39,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class UArrowComponent* ConvoyerDir;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<AAFA_ToyPiece>> PiecesAvailable;
 
 	UPROPERTY(EditAnywhere)

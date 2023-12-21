@@ -8,6 +8,7 @@
 
 class AAFA_ToyPiece;
 class USphereComponent;
+class UTexture2D;
 
 USTRUCT()
 struct FPieceVerification {
@@ -39,4 +40,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FPieceVerification> PiecesVerifications;
+
+	UPROPERTY(EditDefaultsOnly)
+	UTexture2D* ToyImage;
 };

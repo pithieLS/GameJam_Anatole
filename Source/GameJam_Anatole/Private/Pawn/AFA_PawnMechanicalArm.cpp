@@ -6,10 +6,8 @@
 #include "Core/AFA_PlayerController.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "Components/BoxComponent.h"
-#include "Components/SphereComponent.h"///////////////////////////////
 #include "Actor/AFA_ToyPiece.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
-#include "Logic/AFA_ToyVerifier.h"////////////////////////////////////////////////////////////////////////////////////////
 
 AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 {
@@ -81,6 +79,14 @@ AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 	if (!ensure(ClawPivot != nullptr))
 		return;
 	ClawPivot->SetupAttachment(Arm);
+}
+
+void AAFA_PawnMechanicalArm::DropToyPiece()
+{
+	PhysicHandle->ReleaseComponent();
+	GrabbedToyPiece->ArmAttachedTo = nullptr;
+	GrabbedToyPiece = nullptr;
+	GrabPoint->SetWorldRotation(FRotator::ZeroRotator);
 }
 
 // Called when the game starts or when spawned
@@ -168,15 +174,6 @@ void AAFA_PawnMechanicalArm::Tick(float DeltaTime)
 
 	// Set the timeline tick to the delta time
 	TimelineRot.TickTimeline(DeltaTime);
-
-	if (GrabbedToyPiece != nullptr)////////////////////////////////////////////////////////////////////////////////////////
-	{
-		UAFA_ToyVerifier* ToyVerifierCDO = Cast<UAFA_ToyVerifier>(testverifier->GetDefaultObject());
-		if (!ensure(ToyVerifierCDO != nullptr))
-			return;
-		bool aaa = ToyVerifierCDO->VerifyToy(GrabbedToyPiece);
-		UE_LOG(LogTemp, Warning, TEXT("MyBoolean value: %d"), aaa);
-	}
 }
 
 void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
@@ -301,13 +298,9 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 											// If a toy piece is grabbed, drop it
 	if (GrabbedToyPiece != nullptr)
 	{
-		PhysicHandle->ReleaseComponent();
-		GrabbedToyPiece->ArmAttachedTo = nullptr;
-		GrabbedToyPiece = nullptr;
-		GrabPoint->SetWorldRotation(FRotator::ZeroRotator);
+		GrabbedToyPiece->DetachFromArm();
 		return;
 	}
-
 											// If no toy piece grabbed, grab it
 
 	// Get all overlapping actors
@@ -390,7 +383,7 @@ void AAFA_PawnMechanicalArm::OnRequestRotateToy(float AxisValue)
 	if (GrabbedToyPiece == nullptr)
 		return;
 
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (!ensure(PlayerController != nullptr))
 		return;
 

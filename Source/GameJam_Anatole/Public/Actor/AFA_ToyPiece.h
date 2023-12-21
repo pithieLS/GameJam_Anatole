@@ -40,6 +40,8 @@ public:
 	AAFA_ToyPiece* ParentPiece;
 	TMap<USphereComponent*, AAFA_ToyPiece*> AttachPointsToPieceMap;
 
+	void DestroyToyGroup();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

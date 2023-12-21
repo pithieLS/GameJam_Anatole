@@ -24,6 +24,12 @@ AAFA_ToyPiece::AAFA_ToyPiece()
 	AttachPointsParent->SetupAttachment(RootComponent);
 }
 
+void AAFA_ToyPiece::DestroyToyGroup()
+{
+	for (AAFA_ToyPiece* Piece : GetAllAttachedPieces())
+		Piece->ConditionalBeginDestroy();
+}
+
 // Called when the game starts or when spawned
 void AAFA_ToyPiece::BeginPlay()
 {
@@ -90,6 +96,8 @@ TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAtt
 			{
 				AAFA_ToyPiece* CastedToyPiece = Cast<AAFA_ToyPiece>(OverlappedAttachPoint->GetOwner());
 
+				if(CastedToyPiece == this)
+					continue;
 				if(TargetPiece != nullptr && CastedToyPiece != TargetPiece)
 					continue;
 				if(AlreadyAttachedPieces.Contains(CastedToyPiece))
@@ -130,16 +138,16 @@ void AAFA_ToyPiece::DetachFromArm()
 	if (ArmAttachedTo == nullptr)
 		return;
 
-	ArmAttachedTo->GetPhysicHandle()->ReleaseComponent();
+	ArmAttachedTo->DropToyPiece();
 }
 
 void AAFA_ToyPiece::DetachFromToyPiece()
 {
-	if(ArmAttachedTo)
+	if(ArmAttachedTo != nullptr)
 		DetachFromArm();
 
-	PieceMesh->SetCollisionObjectType(ECC_WorldDynamic);
-	PieceMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	//PieceMesh->SetCollisionObjectType(ECC_WorldDynamic);
+	//PieceMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 	PieceMesh->SetSimulatePhysics(true);
 	DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 
@@ -156,6 +164,10 @@ void AAFA_ToyPiece::AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo)
 	AAFA_ToyPiece* MasterPiece = GetMasterPiece();
 	if (!ensure(MasterPiece != nullptr))
 		return;
+
+	for (AAFA_ToyPiece* _ToyPiece : GetAllAttachedPieces())
+		if(_ToyPiece->ArmAttachedTo != nullptr)
+			DetachFromArm();
 
 	// Prepare the mesh for attachment
 	PieceMesh->SetSimulatePhysics(false);
