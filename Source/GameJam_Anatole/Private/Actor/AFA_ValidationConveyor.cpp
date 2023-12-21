@@ -57,11 +57,11 @@ void AAFA_ValidationConveyor::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 		{
 			bIsAnyToyValid = true;
 			VerifiedVerifier = _Verifier;
-			InToyPiece->DestroyToyGroup();
 			break;
 		}
 	}
 
+	InToyPiece->DestroyToyGroup();
 	OnToyVerified(VerifiedVerifier, bIsAnyToyValid);
 }
 
@@ -106,8 +106,9 @@ void AAFA_ValidationConveyor::MoveObjects(float DeltaTime) {
 	for (AActor* Piece : OverlappedActors)
 	{
 		if (AAFA_ToyPiece* CastedPiece = Cast<AAFA_ToyPiece>(Piece))
-			if(CastedPiece->GetMasterPiece() == CastedPiece)
-				Piece->AddActorWorldOffset((DeltaTime * BeltSpeed) * ConveyorBelt->GetForwardVector());
+		{
+			CastedPiece->GetMasterPiece()->AddActorWorldOffset((DeltaTime * BeltSpeed) * ConveyorBelt->GetForwardVector());
+		}
 	}
 }
 

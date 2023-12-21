@@ -201,6 +201,10 @@ void AAFA_ToyPiece::AttachGroupToToyPiece(USphereComponent* AttachPointToAttach,
 	if (!ensure(TargetPiece != nullptr))
 		return;
 
+	for (AAFA_ToyPiece* _ToyPiece : GetAllAttachedPieces())
+		if (_ToyPiece->ArmAttachedTo != nullptr)
+			DetachFromArm();
+
 	// Set attached toy piece to both attach points
 	AttachPointsToPieceMap.Add(AttachPointToAttach, TargetPiece);
 	TargetPiece->AttachPointsToPieceMap.Add(TargetAttachPoint, this);

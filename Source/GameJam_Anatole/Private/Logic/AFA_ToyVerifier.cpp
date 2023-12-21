@@ -5,23 +5,26 @@
 #include "Actor/AFA_ToyPiece.h"
 #include "Components/SphereComponent.h"
 
-bool UAFA_ToyVerifier::VerifyToy(AAFA_ToyPiece* OverlappedToyPiece)
+bool UAFA_ToyVerifier::VerifyToy(AAFA_ToyPiece* ToyPieceToCheck)
 {
 	bool bIsAnyValidPiece = false;
-	TArray<AAFA_ToyPiece*> PieceGroup = OverlappedToyPiece->GetAllAttachedPieces();
-	for (FPieceVerification CurrentVerif : PiecesVerifications)
+	const TArray<AAFA_ToyPiece*> PieceGroup = ToyPieceToCheck->GetAllAttachedPieces();
+	for (const FPieceVerification& CurrentVerif : PiecesVerifications)
 	{
 		for (AAFA_ToyPiece* ToyPiece : PieceGroup)
 		{
 			if (!ToyPiece->IsA(CurrentVerif.VerificatedToyPiece))
 				continue;
 
-			TMap<USphereComponent*, AAFA_ToyPiece*> AttachPointsToPiece = ToyPiece->AttachPointsToPieceMap;
-			for (TPair<FName, TSubclassOf<AAFA_ToyPiece>> AttachedPieceToCheck : CurrentVerif.AttachedToyPieces)
+			TMap<USphereComponent*, AAFA_ToyPiece*> AttachedPointsToPiece = ToyPiece->AttachPointsToPieceMap;
+			for (const TPair<FName, TSubclassOf<AAFA_ToyPiece>>& AttachedPieceToCheck : CurrentVerif.AttachedToyPieces)
 			{
 				bIsAnyValidPiece = true;
 				const USphereComponent* CheckedAttachPoint = Cast<USphereComponent>(ToyPiece->GetDefaultSubobjectByName(AttachedPieceToCheck.Key));
-				AAFA_ToyPiece** CheckedToyPiecePtr = AttachPointsToPiece.Find(CheckedAttachPoint);
+				if (!ensure(CheckedAttachPoint != nullptr))
+					continue;
+
+				AAFA_ToyPiece** CheckedToyPiecePtr = AttachedPointsToPiece.Find(CheckedAttachPoint);
 				const AAFA_ToyPiece* CheckedToyPiece = CheckedToyPiecePtr ? *CheckedToyPiecePtr : nullptr;
 
 				if (!CheckedToyPiece || !CheckedToyPiece->IsA(AttachedPieceToCheck.Value))

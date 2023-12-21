@@ -54,25 +54,25 @@ protected:
 	void UnWeldObjects();
 
 	// Const variables TEMP
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MAX_UP = 200;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MAX_DOWN = -100;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MAX_LEFT = -110;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MAX_RIGHT = 100;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MAX_FORWARD = 100;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MAX_BACK = -100;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MAX_ROLL = 150;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | MoveRange")
+	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
 	int32 MIN_ROLL = -150;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | Control speeds")
+	UPROPERTY(EditAnywhere, Category = "Control properties | Control speeds")
 	float MOVE_SPEED = 150;
-	UPROPERTY(EditDefaultsOnly, Category = "Control properties | Control speeds")
+	UPROPERTY(EditAnywhere, Category = "Control properties | Control speeds")
 	float ROTATE_SPEED = 100;
 
 	// Components

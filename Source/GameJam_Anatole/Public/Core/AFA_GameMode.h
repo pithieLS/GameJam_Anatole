@@ -21,6 +21,13 @@ public:
 
 	virtual void BeginPlay() override;
 
+	// Delegates
+	DECLARE_MULTICAST_DELEGATE(FOnScoreChanged)
+	FOnScoreChanged OnScoreChanged;
+
+	// Getters
+	int32 GetScore() { return Score; }
+
 	void AddToScore(int32 ScoreToAdd);
 
 	// Properties
@@ -28,6 +35,8 @@ public:
 	TArray<TSubclassOf<UAFA_ToyVerifier>> AvailableVerifiers;
 
 protected:
-
+	// Score related
 	int32 Score = 0;
+
+	// Timer related
 };

@@ -36,7 +36,7 @@ class GAMEJAM_ANATOLE_API UAFA_ToyVerifier : public UObject
 {
 	GENERATED_BODY()
 public:
-	virtual bool VerifyToy(AAFA_ToyPiece* OverlappedToyPiece);
+	virtual bool VerifyToy(AAFA_ToyPiece* ToyPieceToCheck);
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FPieceVerification> PiecesVerifications;
