@@ -16,6 +16,8 @@ void AAFA_GameMode::BeginPlay()
 
 	//Create PlayerController for second player;
 	APlayerController* GamepadController = UGameplayStatics::CreatePlayer(this, -1, true);
+
+	OnGameStarted.Broadcast();
 }
 
 void AAFA_GameMode::AddToScore(int32 ScoreToAdd)

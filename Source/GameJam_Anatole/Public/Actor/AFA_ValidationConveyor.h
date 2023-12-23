@@ -27,9 +27,14 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void OnGameStartedHandler();
+
+	// Verification related
 	void VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece);
-	void AddNewVerificationLoop();
 	void OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verifier, bool bIsValid);
+	UFUNCTION(BlueprintCallable)
+	void AddNewOrder();
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
@@ -43,17 +48,17 @@ protected:
 	UBoxComponent* ValidationBoxComponent;
 	UPROPERTY(EditDefaultsOnly)
 	UBoxComponent* BeltCollision;
-	UPROPERTY(EditDefaultsOnly)
-	UWidgetComponent* OrderListWidget;
 
 	// Properties
 	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	float BeltSpeed = 100;
-
-	// Verification related
+	UPROPERTY(BlueprintReadWrite, Category = "Properties | Order/Verification")
 	TMap<TSubclassOf<UAFA_ToyVerifier>, float> CurrentVerifiersToLifeTime;
-	float NewVerifierDelay = 10;
-	float VerifierLifeTime = 20;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
+	float NewVerifierDelay = 45;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
+	float VerifierLifeTime = 60;
+
 
 public:	
 	// Called every frame

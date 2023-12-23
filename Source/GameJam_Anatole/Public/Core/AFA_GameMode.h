@@ -22,6 +22,8 @@ public:
 	virtual void BeginPlay() override;
 
 	// Delegates
+	DECLARE_MULTICAST_DELEGATE(FOnGameStarted)
+	FOnGameStarted OnGameStarted;
 	DECLARE_MULTICAST_DELEGATE(FOnScoreChanged)
 	FOnScoreChanged OnScoreChanged;
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnToyVerified, bool bIsValid)
@@ -29,16 +31,18 @@ public:
 
 	// Getters
 	int32 GetScore() { return Score; }
+	bool GetIsGameRunning() { return bIsGameRunning; }
 
 	void AddToScore(int32 ScoreToAdd);
 
 	// Properties
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TSubclassOf<UAFA_ToyVerifier>> AvailableVerifiers;
 
 protected:
 	// Score related
 	int32 Score = 0;
 
-	// Timer related
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsGameRunning = false;
 };

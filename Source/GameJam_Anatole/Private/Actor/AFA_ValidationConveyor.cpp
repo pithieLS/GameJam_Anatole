@@ -34,19 +34,18 @@ AAFA_ValidationConveyor::AAFA_ValidationConveyor()
 	if (!ensure(BeltCollision != nullptr))
 		return;
 	BeltCollision->SetupAttachment(RootComponent);
-
-	OrderListWidget = CreateDefaultSubobject<UWidgetComponent>("OrderListWidget");
-	if (!ensure(OrderListWidget != nullptr))
-		return;
-	OrderListWidget->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void AAFA_ValidationConveyor::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	AddNewVerificationLoop();
+
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	GameMode->OnGameStarted.AddUObject(this, &AAFA_ValidationConveyor::OnGameStartedHandler);
 	ValidationBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AAFA_ValidationConveyor::OnBoxBeginOverlap);
 }
 
@@ -74,21 +73,6 @@ void AAFA_ValidationConveyor::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 	OnToyVerified(VerifiedVerifier, bIsAnyToyValid);
 }
 
-void AAFA_ValidationConveyor::AddNewVerificationLoop()
-{
-	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
-	if (!ensure(GameMode != nullptr))
-		return;
-
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, [this, GameMode]()
-		{
-			const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableVerifiers.Num() - 1);
-			CurrentVerifiersToLifeTime.Add(GameMode->AvailableVerifiers[RandIndex], VerifierLifeTime);
-			OnCurrentVerifierChanged.Broadcast();
-		}, 3, true, NewVerifierDelay);
-}
-
 void AAFA_ValidationConveyor::OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verifier, bool bIsValid)
 {
 	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
@@ -102,6 +86,17 @@ void AAFA_ValidationConveyor::OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verif
 
 	if(bIsValid)
 		CurrentVerifiersToLifeTime.Remove(Verifier);
+	OnCurrentVerifierChanged.Broadcast();
+}
+
+void AAFA_ValidationConveyor::AddNewOrder()
+{
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableVerifiers.Num() - 1);
+	CurrentVerifiersToLifeTime.Add(GameMode->AvailableVerifiers[RandIndex], VerifierLifeTime);
 	OnCurrentVerifierChanged.Broadcast();
 }
 
@@ -129,7 +124,6 @@ void AAFA_ValidationConveyor::DecrementOrdersLifetime(float DeltaTime)
 	{
 		float& LifeTime = _VerifierToLifeTime.Value;
 		LifeTime -= DeltaTime;
-
 		if (LifeTime > 0)
 			return;
 
