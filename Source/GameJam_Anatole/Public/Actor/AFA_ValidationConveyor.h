@@ -8,6 +8,7 @@
 #include "AFA_ValidationConveyor.generated.h"
 
 class UBoxComponent;
+class UWidgetComponent;
 
 UCLASS()
 class GAMEJAM_ANATOLE_API AAFA_ValidationConveyor : public AActor
@@ -31,7 +32,9 @@ protected:
 	void OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verifier, bool bIsValid);
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 	void MoveObjects(float DeltaTime);
+	void DecrementOrdersLifetime(float DeltaTime);
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
@@ -40,13 +43,15 @@ protected:
 	UBoxComponent* ValidationBoxComponent;
 	UPROPERTY(EditDefaultsOnly)
 	UBoxComponent* BeltCollision;
+	UPROPERTY(EditDefaultsOnly)
+	UWidgetComponent* OrderListWidget;
 
 	// Properties
 	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	float BeltSpeed = 100;
 
 	// Verification related
-	TArray<TSubclassOf<UAFA_ToyVerifier>> CurrentVerifiers;
+	TMap<TSubclassOf<UAFA_ToyVerifier>, float> CurrentVerifiersToLifeTime;
 	float NewVerifierDelay = 10;
 	float VerifierLifeTime = 20;
 

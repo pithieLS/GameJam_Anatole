@@ -6,6 +6,8 @@
 #include "Core/AFA_GameMode.h"
 #include "Components/BoxComponent.h"
 #include <Kismet/GameplayStatics.h>
+#include "Components/WidgetComponent.h"
+
 
 // Sets default values
 AAFA_ValidationConveyor::AAFA_ValidationConveyor()
@@ -32,6 +34,11 @@ AAFA_ValidationConveyor::AAFA_ValidationConveyor()
 	if (!ensure(BeltCollision != nullptr))
 		return;
 	BeltCollision->SetupAttachment(RootComponent);
+
+	OrderListWidget = CreateDefaultSubobject<UWidgetComponent>("OrderListWidget");
+	if (!ensure(OrderListWidget != nullptr))
+		return;
+	OrderListWidget->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -48,7 +55,9 @@ void AAFA_ValidationConveyor::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 	bool bIsAnyToyValid = false;
 
 	TSubclassOf<UAFA_ToyVerifier> VerifiedVerifier;
-	for (TSubclassOf<UAFA_ToyVerifier> _Verifier : CurrentVerifiers)
+	TArray<TSubclassOf<UAFA_ToyVerifier>> CurrentVerifiers;
+	CurrentVerifiersToLifeTime.GenerateKeyArray(CurrentVerifiers);
+	for (TSubclassOf<UAFA_ToyVerifier>& _Verifier : CurrentVerifiers)
 	{
 		UAFA_ToyVerifier* ToyVerifierCDO = Cast<UAFA_ToyVerifier>(_Verifier->GetDefaultObject());
 		if (!ensure(ToyVerifierCDO != nullptr))
@@ -75,7 +84,7 @@ void AAFA_ValidationConveyor::AddNewVerificationLoop()
 	GetWorldTimerManager().SetTimer(TimerHandle, [this, GameMode]()
 		{
 			const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableVerifiers.Num() - 1);
-			CurrentVerifiers.Add(GameMode->AvailableVerifiers[RandIndex]);
+			CurrentVerifiersToLifeTime.Add(GameMode->AvailableVerifiers[RandIndex], VerifierLifeTime);
 			OnCurrentVerifierChanged.Broadcast();
 		}, 3, true, NewVerifierDelay);
 }
@@ -88,10 +97,12 @@ void AAFA_ValidationConveyor::OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verif
 
 	const int32 ScoreToAdd = bIsValid ? 1 : -1;
 	GameMode->AddToScore(ScoreToAdd);
-	CurrentVerifiers.Remove(Verifier);
-	OnCurrentVerifierChanged.Broadcast();
 
-	UE_LOG(LogTemp, Warning, TEXT("ToyVerfied: %d"), ScoreToAdd);
+	GameMode->OnToyVerified.Broadcast(bIsValid);
+
+	if(bIsValid)
+		CurrentVerifiersToLifeTime.Remove(Verifier);
+	OnCurrentVerifierChanged.Broadcast();
 }
 
 void AAFA_ValidationConveyor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -112,11 +123,28 @@ void AAFA_ValidationConveyor::MoveObjects(float DeltaTime) {
 	}
 }
 
+void AAFA_ValidationConveyor::DecrementOrdersLifetime(float DeltaTime)
+{
+	for (TPair<TSubclassOf<UAFA_ToyVerifier>, float>& _VerifierToLifeTime : CurrentVerifiersToLifeTime)
+	{
+		float& LifeTime = _VerifierToLifeTime.Value;
+		LifeTime -= DeltaTime;
+
+		if (LifeTime > 0)
+			return;
+
+		CurrentVerifiersToLifeTime.Remove(_VerifierToLifeTime.Key);
+		OnCurrentVerifierChanged.Broadcast();
+	}
+}
+
 // Called every frame
 void AAFA_ValidationConveyor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	MoveObjects(DeltaTime);
+
+	DecrementOrdersLifetime(DeltaTime);
 }
 

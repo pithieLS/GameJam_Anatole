@@ -24,6 +24,8 @@ public:
 	// Delegates
 	DECLARE_MULTICAST_DELEGATE(FOnScoreChanged)
 	FOnScoreChanged OnScoreChanged;
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnToyVerified, bool bIsValid)
+	FOnToyVerified OnToyVerified;
 
 	// Getters
 	int32 GetScore() { return Score; }
