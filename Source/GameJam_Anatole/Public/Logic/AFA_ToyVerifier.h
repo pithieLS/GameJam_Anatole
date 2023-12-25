@@ -39,8 +39,14 @@ public:
 	virtual bool VerifyToy(AAFA_ToyPiece* ToyPieceToCheck);
 
 	UPROPERTY(EditDefaultsOnly)
-	TArray<FPieceVerification> PiecesVerifications;
+	UTexture2D* ToyImage;
 
 	UPROPERTY(EditDefaultsOnly)
-	UTexture2D* ToyImage;
+	FText ToyName;
+
+	UPROPERTY(EditDefaultsOnly)
+	UMaterial* OverlayMaterial;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FPieceVerification> PiecesVerifications;
 };

@@ -19,10 +19,6 @@ public:
 	// Sets default values for this actor's properties
 	AAFA_ValidationConveyor();
 
-	// Delegates
-	DECLARE_MULTICAST_DELEGATE(FOnCurrentVerifierChanged)
-	FOnCurrentVerifierChanged OnCurrentVerifierChanged;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -52,8 +48,6 @@ protected:
 	// Properties
 	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	float BeltSpeed = 100;
-	UPROPERTY(BlueprintReadWrite, Category = "Properties | Order/Verification")
-	TMap<TSubclassOf<UAFA_ToyVerifier>, float> CurrentVerifiersToLifeTime;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
 	float NewVerifierDelay = 45;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")

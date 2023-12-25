@@ -26,18 +26,23 @@ public:
 	FOnGameStarted OnGameStarted;
 	DECLARE_MULTICAST_DELEGATE(FOnScoreChanged)
 	FOnScoreChanged OnScoreChanged;
+	DECLARE_MULTICAST_DELEGATE(FOnOrdersChanged)
+	FOnOrdersChanged OnOrdersChanged;
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnToyVerified, bool bIsValid)
 	FOnToyVerified OnToyVerified;
 
 	// Getters
 	int32 GetScore() { return Score; }
 	bool GetIsGameRunning() { return bIsGameRunning; }
+	TMap<TSubclassOf<UAFA_ToyVerifier>, float>& GetCurrentOrders() { return CurrentOrdersToLifeTime; }
 
 	void AddToScore(int32 ScoreToAdd);
 
 	// Properties
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TSubclassOf<UAFA_ToyVerifier>> AvailableVerifiers;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TMap<TSubclassOf<UAFA_ToyVerifier>, float> CurrentOrdersToLifeTime;
 
 protected:
 	// Score related

@@ -51,16 +51,21 @@ void AAFA_ValidationConveyor::BeginPlay()
 
 void AAFA_ValidationConveyor::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 {
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
 	bool bIsAnyToyValid = false;
 
 	TSubclassOf<UAFA_ToyVerifier> VerifiedVerifier;
 	TArray<TSubclassOf<UAFA_ToyVerifier>> CurrentVerifiers;
-	CurrentVerifiersToLifeTime.GenerateKeyArray(CurrentVerifiers);
+	GameMode->GetCurrentOrders().GenerateKeyArray(CurrentVerifiers);
 	for (TSubclassOf<UAFA_ToyVerifier>& _Verifier : CurrentVerifiers)
 	{
 		UAFA_ToyVerifier* ToyVerifierCDO = Cast<UAFA_ToyVerifier>(_Verifier->GetDefaultObject());
 		if (!ensure(ToyVerifierCDO != nullptr))
 			return;
+
 		if (ToyVerifierCDO->VerifyToy(InToyPiece))
 		{
 			bIsAnyToyValid = true;
@@ -85,8 +90,8 @@ void AAFA_ValidationConveyor::OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verif
 	GameMode->OnToyVerified.Broadcast(bIsValid);
 
 	if(bIsValid)
-		CurrentVerifiersToLifeTime.Remove(Verifier);
-	OnCurrentVerifierChanged.Broadcast();
+		GameMode->GetCurrentOrders().Remove(Verifier);
+	GameMode->OnOrdersChanged.Broadcast();
 }
 
 void AAFA_ValidationConveyor::AddNewOrder()
@@ -96,8 +101,8 @@ void AAFA_ValidationConveyor::AddNewOrder()
 		return;
 
 	const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableVerifiers.Num() - 1);
-	CurrentVerifiersToLifeTime.Add(GameMode->AvailableVerifiers[RandIndex], VerifierLifeTime);
-	OnCurrentVerifierChanged.Broadcast();
+	GameMode->GetCurrentOrders().Add(GameMode->AvailableVerifiers[RandIndex], VerifierLifeTime);
+	GameMode->OnOrdersChanged.Broadcast();
 }
 
 void AAFA_ValidationConveyor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -120,15 +125,20 @@ void AAFA_ValidationConveyor::MoveObjects(float DeltaTime) {
 
 void AAFA_ValidationConveyor::DecrementOrdersLifetime(float DeltaTime)
 {
-	for (TPair<TSubclassOf<UAFA_ToyVerifier>, float>& _VerifierToLifeTime : CurrentVerifiersToLifeTime)
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	for (TPair<TSubclassOf<UAFA_ToyVerifier>, float>& _VerifierToLifeTime : GameMode->GetCurrentOrders())
 	{
 		float& LifeTime = _VerifierToLifeTime.Value;
 		LifeTime -= DeltaTime;
 		if (LifeTime > 0)
 			return;
 
-		CurrentVerifiersToLifeTime.Remove(_VerifierToLifeTime.Key);
-		OnCurrentVerifierChanged.Broadcast();
+		GameMode->GetCurrentOrders().Remove(_VerifierToLifeTime.Key);
+
+		GameMode->OnOrdersChanged.Broadcast();
 	}
 }
 
