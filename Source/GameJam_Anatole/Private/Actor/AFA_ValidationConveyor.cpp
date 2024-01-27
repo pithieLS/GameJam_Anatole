@@ -41,7 +41,7 @@ void AAFA_ValidationConveyor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
 	if (!ensure(GameMode != nullptr))
 		return;
 
@@ -51,14 +51,13 @@ void AAFA_ValidationConveyor::BeginPlay()
 
 void AAFA_ValidationConveyor::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 {
-	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
-	if (!ensure(GameMode != nullptr))
+	if (!GameMode->GetIsGameRunning())
 		return;
 
 	bool bIsAnyToyValid = false;
 
 	UAFA_ToyOrder* VerifiedOrder = nullptr;
-	TArray<UAFA_ToyOrder*>& CurrentOrders = GameMode->GetCurrentOrders();
+	TArray<UAFA_ToyOrder*> CurrentOrders = GameMode->GetCurrentOrders();
 	for (UAFA_ToyOrder* _Order : CurrentOrders)
 	{
 		if (_Order->VerifyToy(InToyPiece))
@@ -76,10 +75,6 @@ void AAFA_ValidationConveyor::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 
 void AAFA_ValidationConveyor::OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool bIsValid)
 {
-	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
-	if (!ensure(GameMode != nullptr))
-		return;
-
 	const int32 ScoreToAdd = bIsValid ? 1 : -1;
 	GameMode->AddToScore(ScoreToAdd);
 
@@ -91,10 +86,6 @@ void AAFA_ValidationConveyor::OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool b
 
 void AAFA_ValidationConveyor::MakeNewOrder()
 {
-	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
-	if (!ensure(GameMode != nullptr))
-		return;
-
 	const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableOrders.Num() - 1);
 
 	UAFA_ToyOrder* SpawnedNewOrder = NewObject<UAFA_ToyOrder>(this, GameMode->AvailableOrders[RandIndex]);
@@ -112,7 +103,8 @@ void AAFA_ValidationConveyor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedC
 		VerifyOverlappedToy(CastedPiece);
 }
 
-void AAFA_ValidationConveyor::MoveObjects(float DeltaTime) {
+void AAFA_ValidationConveyor::MoveObjects(float DeltaTime) 
+{
 	TArray<AActor*> OverlappedActors;
 	BeltCollision->GetOverlappingActors(OverlappedActors);
 	for (AActor* Piece : OverlappedActors)
@@ -126,10 +118,6 @@ void AAFA_ValidationConveyor::MoveObjects(float DeltaTime) {
 
 void AAFA_ValidationConveyor::DecrementOrdersLifetime(float DeltaTime)
 {
-	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
-	if (!ensure(GameMode != nullptr))
-		return;
-
 	for (UAFA_ToyOrder* _Order : GameMode->GetCurrentOrders())
 		_Order->DecrementLifetime(DeltaTime);
 }

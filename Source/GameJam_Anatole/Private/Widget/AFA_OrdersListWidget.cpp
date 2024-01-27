@@ -33,7 +33,7 @@ void UAFA_OrdersListWidget::OnOrdersChanged()
 
 	OrderWidgets.Empty();
 
-	TArray<UAFA_ToyOrder*>& CurrentOrders = GameMode->GetCurrentOrders();
+	TArray<UAFA_ToyOrder*> CurrentOrders = GameMode->GetCurrentOrders();
 	for (UAFA_ToyOrder* _Order : CurrentOrders)
 	{
 		AddOrder(_Order);

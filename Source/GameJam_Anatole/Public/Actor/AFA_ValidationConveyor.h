@@ -53,6 +53,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
 	float OrderLifeTime = 60;
 
+	class AAFA_GameMode* GameMode;
 
 public:	
 	// Called every frame

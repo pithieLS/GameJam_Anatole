@@ -21,6 +21,11 @@ public:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	void StartGame();
+	UFUNCTION(BlueprintCallable)
+	void StopGame();
+
 	// Delegates
 	DECLARE_MULTICAST_DELEGATE(FOnGameStarted)
 	FOnGameStarted OnGameStartedDelegate;
@@ -33,23 +38,32 @@ public:
 
 	// Getters
 	int32 GetScore() { return Score; }
-	bool GetIsGameRunning() { return bIsGameRunning; }
-	TArray<UAFA_ToyOrder*>& GetCurrentOrders() { return CurrentOrders; }
+	bool GetIsGameRunning() { return bIsGameStarted; }
+	TArray<UAFA_ToyOrder*> GetCurrentOrders() { return CurrentOrders; }
 
+	// Orders related
 	void AddNewOrder(UAFA_ToyOrder* NewOrder); //{  }
 	void RemoveOrder(UAFA_ToyOrder* OrderToRemove); //{ CurrentOrders.Remove(OrderToRemove); }
 	void AddToScore(int32 ScoreToAdd);
 
-	// Properties
+	// Countdown related
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void StartCountdown(); // Countdown before the game starts. Usually called on the BeginPlay of the Level BP
+
+	// Order related
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<UAFA_ToyOrder*> CurrentOrders;
+
+	// Countdown related
+	UPROPERTY(BlueprintReadWrite)
+	float StartCountdownTimeLeft = 3;
 
 protected:
 	// Score related
 	int32 Score = 0;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bIsGameRunning = false;
+	bool bIsGameStarted = false;
 };

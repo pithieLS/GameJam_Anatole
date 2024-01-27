@@ -15,9 +15,19 @@ void AAFA_GameMode::BeginPlay()
 	Super::BeginPlay();
 
 	//Create PlayerController for second player;
-	APlayerController* GamepadController = UGameplayStatics::CreatePlayer(this, -1, true);
+	APlayerController* NewController = UGameplayStatics::CreatePlayer(this, -1, true);
+}
 
+void AAFA_GameMode::StartGame()
+{
+	bIsGameStarted = true;
 	OnGameStartedDelegate.Broadcast();
+}
+
+void AAFA_GameMode::StopGame()
+{
+	bIsGameStarted = false;
+	// TODO
 }
 
 void AAFA_GameMode::AddNewOrder(UAFA_ToyOrder* NewOrder)
