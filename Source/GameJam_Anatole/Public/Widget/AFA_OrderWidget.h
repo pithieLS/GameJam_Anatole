@@ -15,7 +15,7 @@ class GAMEJAM_ANATOLE_API UAFA_OrderWidget : public UUserWidget
 	GENERATED_BODY()
 public:
 
-	void InitialiseOrder(FText InToyName, UMaterial* InOverlayTargetMaterial);
+	void InitialiseOrderWidget(FText InToyName, UMaterial* InOverlayTargetMaterial);
 
 protected:
 

@@ -11,15 +11,15 @@ AAFA_ToyOverlayActor::AAFA_ToyOverlayActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	ToyMesh = CreateDefaultSubobject<UStaticMeshComponent>("ToyMesh");
-	if (!ensure(ToyMesh != nullptr))
-		return;
-	SetRootComponent(ToyMesh);
-
 	SceneCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>("SceneCaptureComponent");
 	if (!ensure(SceneCaptureComponent != nullptr))
 		return;
-	SceneCaptureComponent->SetupAttachment(RootComponent);
+	SetRootComponent(SceneCaptureComponent);
+
+	ToyMesh = CreateDefaultSubobject<UStaticMeshComponent>("ToyMesh");
+	if (!ensure(ToyMesh != nullptr))
+		return;
+	ToyMesh->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -29,14 +29,5 @@ void AAFA_ToyOverlayActor::BeginPlay()
 	
 	// Make scene capture only render toy mesh and have a transparent background
 	SceneCaptureComponent->ShowOnlyActorComponents(this);
-}
-
-// Called every frame
-void AAFA_ToyOverlayActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// Make the toy rotate
-	ToyMesh->AddRelativeRotation(FQuat(0, 0.5f, 0, 0));
 }
 

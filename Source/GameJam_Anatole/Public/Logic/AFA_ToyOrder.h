@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "AFA_ToyVerifier.generated.h"
+#include "AFA_ToyOrder.generated.h"
 
 class AAFA_ToyPiece;
 class USphereComponent;
@@ -19,7 +19,7 @@ public:
 	TSubclassOf<AAFA_ToyPiece> VerificatedToyPiece;
 
 	UPROPERTY(EditDefaultsOnly)
-	TMap<FName, TSubclassOf<AAFA_ToyPiece>> AttachedToyPieces;
+	TMap<FName, TSubclassOf<AAFA_ToyPiece>> AttachedToyPieces; // Name of the attach point, piece class
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIgnoreRotation = false;
@@ -32,11 +32,17 @@ public:
  * 
  */
 UCLASS(Blueprintable)
-class GAMEJAM_ANATOLE_API UAFA_ToyVerifier : public UObject
+class GAMEJAM_ANATOLE_API UAFA_ToyOrder : public UObject
 {
+
 	GENERATED_BODY()
+
 public:
+	void InitialiseOrder();
+
 	virtual bool VerifyToy(AAFA_ToyPiece* ToyPieceToCheck);
+
+	void DecrementLifetime(float DeltaTime);
 
 	UPROPERTY(EditDefaultsOnly)
 	UTexture2D* ToyImage;
@@ -49,4 +55,11 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FPieceVerification> PiecesVerifications;
+
+	UPROPERTY(EditDefaultsOnly)
+	float OrderLifeTime = 30; // Lifetime in seconds
+
+protected:
+
+	float CurrentLifeTime = 0;
 };

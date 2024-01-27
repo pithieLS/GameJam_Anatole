@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "Logic/AFA_ToyVerifier.h"
+#include "Logic/AFA_ToyOrder.h"
 #include "Actor/AFA_ToyPiece.h"
 #include "AFA_GameMode.generated.h"
 
@@ -23,26 +23,28 @@ public:
 
 	// Delegates
 	DECLARE_MULTICAST_DELEGATE(FOnGameStarted)
-	FOnGameStarted OnGameStarted;
+	FOnGameStarted OnGameStartedDelegate;
 	DECLARE_MULTICAST_DELEGATE(FOnScoreChanged)
-	FOnScoreChanged OnScoreChanged;
+	FOnScoreChanged OnScoreChangedDelegate;
 	DECLARE_MULTICAST_DELEGATE(FOnOrdersChanged)
-	FOnOrdersChanged OnOrdersChanged;
+	FOnOrdersChanged OnOrdersChangedDelegate;
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnToyVerified, bool bIsValid)
-	FOnToyVerified OnToyVerified;
+	FOnToyVerified OnToyVerifiedDelegate;
 
 	// Getters
 	int32 GetScore() { return Score; }
 	bool GetIsGameRunning() { return bIsGameRunning; }
-	TMap<TSubclassOf<UAFA_ToyVerifier>, float>& GetCurrentOrders() { return CurrentOrdersToLifeTime; }
+	TArray<UAFA_ToyOrder*>& GetCurrentOrders() { return CurrentOrders; }
 
+	void AddNewOrder(UAFA_ToyOrder* NewOrder); //{  }
+	void RemoveOrder(UAFA_ToyOrder* OrderToRemove); //{ CurrentOrders.Remove(OrderToRemove); }
 	void AddToScore(int32 ScoreToAdd);
 
 	// Properties
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TArray<TSubclassOf<UAFA_ToyVerifier>> AvailableVerifiers;
+	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TMap<TSubclassOf<UAFA_ToyVerifier>, float> CurrentOrdersToLifeTime;
+	TArray<UAFA_ToyOrder*> CurrentOrders;
 
 protected:
 	// Score related

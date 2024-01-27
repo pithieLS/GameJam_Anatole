@@ -5,7 +5,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 
-void UAFA_OrderWidget::InitialiseOrder(FText InToyName, UMaterial* InOverlayTargetMaterial)
+void UAFA_OrderWidget::InitialiseOrderWidget(FText InToyName, UMaterial* InOverlayTargetMaterial)
 {
 	ToyName->SetText(InToyName);
 	ToyOverlayImage->SetBrushFromMaterial(InOverlayTargetMaterial);

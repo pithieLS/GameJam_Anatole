@@ -17,7 +17,22 @@ void AAFA_GameMode::BeginPlay()
 	//Create PlayerController for second player;
 	APlayerController* GamepadController = UGameplayStatics::CreatePlayer(this, -1, true);
 
-	OnGameStarted.Broadcast();
+	OnGameStartedDelegate.Broadcast();
+}
+
+void AAFA_GameMode::AddNewOrder(UAFA_ToyOrder* NewOrder)
+{
+	CurrentOrders.Add(NewOrder);
+
+	OnOrdersChangedDelegate.Broadcast();
+}
+
+void AAFA_GameMode::RemoveOrder(UAFA_ToyOrder* OrderToRemove)
+{
+	CurrentOrders.Remove(OrderToRemove);
+	OrderToRemove->ConditionalBeginDestroy();
+
+	OnOrdersChangedDelegate.Broadcast();
 }
 
 void AAFA_GameMode::AddToScore(int32 ScoreToAdd)
@@ -25,5 +40,5 @@ void AAFA_GameMode::AddToScore(int32 ScoreToAdd)
 	Score += ScoreToAdd;
 	Score = Score < 0 ? 0 : Score;
 
-	OnScoreChanged.Broadcast();
+	OnScoreChangedDelegate.Broadcast();
 }

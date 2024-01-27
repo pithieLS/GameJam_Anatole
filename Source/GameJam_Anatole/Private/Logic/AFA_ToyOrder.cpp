@@ -1,11 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Logic/AFA_ToyVerifier.h"
+#include "Logic/AFA_ToyOrder.h"
 #include "Actor/AFA_ToyPiece.h"
 #include "Components/SphereComponent.h"
+#include "Core/AFA_GameMode.h"
+#include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
 
-bool UAFA_ToyVerifier::VerifyToy(AAFA_ToyPiece* ToyPieceToCheck)
+void UAFA_ToyOrder::InitialiseOrder()
+{
+	CurrentLifeTime = OrderLifeTime;
+}
+
+bool UAFA_ToyOrder::VerifyToy(AAFA_ToyPiece* ToyPieceToCheck)
 {
 	bool bIsAnyValidPiece = false;
 	const TArray<AAFA_ToyPiece*> PieceGroup = ToyPieceToCheck->GetAllAttachedPieces();
@@ -39,3 +46,23 @@ bool UAFA_ToyVerifier::VerifyToy(AAFA_ToyPiece* ToyPieceToCheck)
 
 	return true;
 }
+
+void UAFA_ToyOrder::DecrementLifetime(float DeltaTime)
+{
+	CurrentLifeTime -= DeltaTime;
+	UE_LOG(LogTemp, Warning, TEXT("%s lifetime: %f"), *GetName(), CurrentLifeTime);
+
+	if (CurrentLifeTime > 0)
+		return;
+
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	GameMode->RemoveOrder(this);
+}
+
+//void UAFA_ToyOrder::Tick(float DeltaTime)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("Custom tick!"));
+//}

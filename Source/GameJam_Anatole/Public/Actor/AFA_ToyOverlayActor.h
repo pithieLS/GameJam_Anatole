@@ -19,14 +19,12 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void RotateToyOverlay(float DeltaTime); // Make the toy overlay rotate
+
 	// Components
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UStaticMeshComponent* ToyMesh;
 	UPROPERTY(EditDefaultsOnly)
 	class USceneCaptureComponent2D* SceneCaptureComponent;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

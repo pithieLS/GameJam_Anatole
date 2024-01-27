@@ -45,7 +45,7 @@ void AAFA_ValidationConveyor::BeginPlay()
 	if (!ensure(GameMode != nullptr))
 		return;
 
-	GameMode->OnGameStarted.AddUObject(this, &AAFA_ValidationConveyor::OnGameStartedHandler);
+	GameMode->OnGameStartedDelegate.AddUObject(this, &AAFA_ValidationConveyor::OnGameStartedHandler);
 	ValidationBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AAFA_ValidationConveyor::OnBoxBeginOverlap);
 }
 
@@ -57,28 +57,24 @@ void AAFA_ValidationConveyor::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 
 	bool bIsAnyToyValid = false;
 
-	TSubclassOf<UAFA_ToyVerifier> VerifiedVerifier;
-	TArray<TSubclassOf<UAFA_ToyVerifier>> CurrentVerifiers;
-	GameMode->GetCurrentOrders().GenerateKeyArray(CurrentVerifiers);
-	for (TSubclassOf<UAFA_ToyVerifier>& _Verifier : CurrentVerifiers)
+	UAFA_ToyOrder* VerifiedOrder = nullptr;
+	TArray<UAFA_ToyOrder*>& CurrentOrders = GameMode->GetCurrentOrders();
+	for (UAFA_ToyOrder* _Order : CurrentOrders)
 	{
-		UAFA_ToyVerifier* ToyVerifierCDO = Cast<UAFA_ToyVerifier>(_Verifier->GetDefaultObject());
-		if (!ensure(ToyVerifierCDO != nullptr))
-			return;
-
-		if (ToyVerifierCDO->VerifyToy(InToyPiece))
+		if (_Order->VerifyToy(InToyPiece))
 		{
+			// TODO: make the order with the less lifetime left be the verified order
 			bIsAnyToyValid = true;
-			VerifiedVerifier = _Verifier;
+			VerifiedOrder = _Order;
 			break;
 		}
 	}
 
 	InToyPiece->DestroyToyGroup();
-	OnToyVerified(VerifiedVerifier, bIsAnyToyValid);
+	OnToyVerified(VerifiedOrder, bIsAnyToyValid);
 }
 
-void AAFA_ValidationConveyor::OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verifier, bool bIsValid)
+void AAFA_ValidationConveyor::OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool bIsValid)
 {
 	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
 	if (!ensure(GameMode != nullptr))
@@ -87,22 +83,27 @@ void AAFA_ValidationConveyor::OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verif
 	const int32 ScoreToAdd = bIsValid ? 1 : -1;
 	GameMode->AddToScore(ScoreToAdd);
 
-	GameMode->OnToyVerified.Broadcast(bIsValid);
+	GameMode->OnToyVerifiedDelegate.Broadcast(bIsValid);
 
 	if(bIsValid)
-		GameMode->GetCurrentOrders().Remove(Verifier);
-	GameMode->OnOrdersChanged.Broadcast();
+		GameMode->RemoveOrder(VerifiedOrder);
 }
 
-void AAFA_ValidationConveyor::AddNewOrder()
+void AAFA_ValidationConveyor::MakeNewOrder()
 {
 	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
 	if (!ensure(GameMode != nullptr))
 		return;
 
-	const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableVerifiers.Num() - 1);
-	GameMode->GetCurrentOrders().Add(GameMode->AvailableVerifiers[RandIndex], VerifierLifeTime);
-	GameMode->OnOrdersChanged.Broadcast();
+	const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableOrders.Num() - 1);
+
+	UAFA_ToyOrder* SpawnedNewOrder = NewObject<UAFA_ToyOrder>(this, GameMode->AvailableOrders[RandIndex]);
+	if (!ensure(SpawnedNewOrder != nullptr))
+		return;
+
+	SpawnedNewOrder->InitialiseOrder();
+
+	GameMode->AddNewOrder(SpawnedNewOrder);
 }
 
 void AAFA_ValidationConveyor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -129,17 +130,8 @@ void AAFA_ValidationConveyor::DecrementOrdersLifetime(float DeltaTime)
 	if (!ensure(GameMode != nullptr))
 		return;
 
-	for (TPair<TSubclassOf<UAFA_ToyVerifier>, float>& _VerifierToLifeTime : GameMode->GetCurrentOrders())
-	{
-		float& LifeTime = _VerifierToLifeTime.Value;
-		LifeTime -= DeltaTime;
-		if (LifeTime > 0)
-			return;
-
-		GameMode->GetCurrentOrders().Remove(_VerifierToLifeTime.Key);
-
-		GameMode->OnOrdersChanged.Broadcast();
-	}
+	for (UAFA_ToyOrder* _Order : GameMode->GetCurrentOrders())
+		_Order->DecrementLifetime(DeltaTime);
 }
 
 // Called every frame

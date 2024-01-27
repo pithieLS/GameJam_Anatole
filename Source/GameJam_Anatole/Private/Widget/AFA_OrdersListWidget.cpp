@@ -4,7 +4,7 @@
 #include "Widget/AFA_OrdersListWidget.h"
 #include "Widget/AFA_OrderWidget.h"
 #include "Core/AFA_GameMode.h"
-#include "Logic/AFA_ToyVerifier.h"
+#include "Logic/AFA_ToyOrder.h"
 #include "Components/HorizontalBox.h"
 #include <Kismet/GameplayStatics.h>
 
@@ -16,7 +16,7 @@ void UAFA_OrdersListWidget::NativeConstruct()
 	if (!ensure(GameMode != nullptr))
 		return;
 
-	GameMode->OnOrdersChanged.AddUObject(this, &UAFA_OrdersListWidget::OnOrdersChanged);
+	GameMode->OnOrdersChangedDelegate.AddUObject(this, &UAFA_OrdersListWidget::OnOrdersChanged);
 }
 
 void UAFA_OrdersListWidget::OnOrdersChanged()
@@ -33,23 +33,18 @@ void UAFA_OrdersListWidget::OnOrdersChanged()
 
 	OrderWidgets.Empty();
 
-	TMap<TSubclassOf<UAFA_ToyVerifier>, float>& CurrentOrders = GameMode->GetCurrentOrders();
-	for (TPair<TSubclassOf<UAFA_ToyVerifier>, float>& _VerifierToLifeTime : CurrentOrders)
+	TArray<UAFA_ToyOrder*>& CurrentOrders = GameMode->GetCurrentOrders();
+	for (UAFA_ToyOrder* _Order : CurrentOrders)
 	{
-		AddOrder(_VerifierToLifeTime.Key); // Only one order because it can't add two times the same thing in a TMap, to fix
+		AddOrder(_Order);
 	}
 }
 
-void UAFA_OrdersListWidget::AddOrder(TSubclassOf<UAFA_ToyVerifier>& NewOrder)
+void UAFA_OrdersListWidget::AddOrder(UAFA_ToyOrder* NewOrder)
 {
 	UAFA_OrderWidget* NewOrderWidget = CreateWidget<UAFA_OrderWidget>(this, OrderWidgetClass);
-	//NewOrderWidget->AddToViewport();
 
-	UAFA_ToyVerifier* NewOrderCDO = Cast<UAFA_ToyVerifier>(NewOrder->GetDefaultObject());
-	if (!ensure(NewOrderCDO != nullptr))
-		return;
-
-	NewOrderWidget->InitialiseOrder(NewOrderCDO->ToyName, NewOrderCDO->OverlayMaterial);
+	NewOrderWidget->InitialiseOrderWidget(NewOrder->ToyName, NewOrder->OverlayMaterial);
 
 	OrderWidgets.Add(NewOrderWidget);
 	HorizontalBox->AddChild(NewOrderWidget);

@@ -10,7 +10,7 @@
  * 
  */
 
-class UAFA_ToyVerifier;
+class UAFA_ToyOrder;
 class UAFA_OrderWidget;
 
 UCLASS()
@@ -22,7 +22,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 	void OnOrdersChanged();
-	void AddOrder(TSubclassOf<UAFA_ToyVerifier>& NewOrder);
+	void AddOrder(UAFA_ToyOrder* NewOrder);
 
 	TArray<UAFA_OrderWidget*> OrderWidgets;
 

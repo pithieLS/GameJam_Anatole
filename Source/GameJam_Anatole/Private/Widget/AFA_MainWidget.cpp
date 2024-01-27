@@ -14,7 +14,7 @@ void UAFA_MainWidget::NativeConstruct()
 	if (!ensure(GameMode != nullptr))
 		return;
 
-	GameMode->OnScoreChanged.AddUObject(this, &UAFA_MainWidget::UpdateScoreText);
+	GameMode->OnScoreChangedDelegate.AddUObject(this, &UAFA_MainWidget::UpdateScoreText);
 	UpdateScoreText();
 }
 

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Logic/AFA_ToyVerifier.h"
+#include "Logic/AFA_ToyOrder.h"
 #include "AFA_ValidationConveyor.generated.h"
 
 class UBoxComponent;
@@ -28,9 +28,9 @@ protected:
 
 	// Verification related
 	void VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece);
-	void OnToyVerified(TSubclassOf<UAFA_ToyVerifier>& Verifier, bool bIsValid);
+	void OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool bIsValid);
 	UFUNCTION(BlueprintCallable)
-	void AddNewOrder();
+	void MakeNewOrder();
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
@@ -49,9 +49,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	float BeltSpeed = 100;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
-	float NewVerifierDelay = 45;
+	float NewOrderDelay = 45;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
-	float VerifierLifeTime = 60;
+	float OrderLifeTime = 60;
 
 
 public:	
