@@ -46,12 +46,14 @@ protected:
 	UBoxComponent* BeltCollision;
 
 	// Properties
-	UPROPERTY(EditDefaultsOnly, Category = "Properties")
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	float BeltSpeed = 100;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")
+	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")
 	float NewOrderDelay = 45;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Properties | Order/Verification")
-	float OrderLifeTime = 60;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")
+	int32 MaxOderNumber = 5;
 
 	class AAFA_GameMode* GameMode;
 

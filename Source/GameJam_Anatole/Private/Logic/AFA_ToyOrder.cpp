@@ -5,7 +5,14 @@
 #include "Actor/AFA_ToyPiece.h"
 #include "Components/SphereComponent.h"
 #include "Core/AFA_GameMode.h"
-#include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
+#include <Kismet/GameplayStatics.h>
+
+void UAFA_ToyOrder::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	OnOrderRemovedDelegate.ExecuteIfBound();
+}
 
 void UAFA_ToyOrder::InitialiseOrder()
 {
@@ -50,7 +57,6 @@ bool UAFA_ToyOrder::VerifyToy(AAFA_ToyPiece* ToyPieceToCheck)
 void UAFA_ToyOrder::DecrementLifetime(float DeltaTime)
 {
 	CurrentLifeTime -= DeltaTime;
-	UE_LOG(LogTemp, Warning, TEXT("%s lifetime: %f"), *GetName(), CurrentLifeTime);
 
 	if (CurrentLifeTime > 0)
 		return;

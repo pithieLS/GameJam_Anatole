@@ -38,17 +38,28 @@ class GAMEJAM_ANATOLE_API UAFA_ToyOrder : public UObject
 	GENERATED_BODY()
 
 public:
+
 	void InitialiseOrder();
+	virtual void BeginDestroy() override;
 
 	virtual bool VerifyToy(AAFA_ToyPiece* ToyPieceToCheck);
 
 	void DecrementLifetime(float DeltaTime);
 
-	UPROPERTY(EditDefaultsOnly)
-	UTexture2D* ToyImage;
+	// Getters
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetCurrentLifeTime() { return CurrentLifeTime; }
 
+	// Delegates
+	DECLARE_DELEGATE(FOnOrderRemovedDelegate)
+	FOnOrderRemovedDelegate OnOrderRemovedDelegate;
+
+	// Properties
 	UPROPERTY(EditDefaultsOnly)
 	FText ToyName;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AAFA_ToyOverlayActor> ToyOverlayActor;
 
 	UPROPERTY(EditDefaultsOnly)
 	UMaterial* OverlayMaterial;
@@ -56,7 +67,7 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FPieceVerification> PiecesVerifications;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float OrderLifeTime = 30; // Lifetime in seconds
 
 protected:

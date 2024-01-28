@@ -31,8 +31,8 @@ public:
 	FOnGameStarted OnGameStartedDelegate;
 	DECLARE_MULTICAST_DELEGATE(FOnScoreChanged)
 	FOnScoreChanged OnScoreChangedDelegate;
-	DECLARE_MULTICAST_DELEGATE(FOnOrdersChanged)
-	FOnOrdersChanged OnOrdersChangedDelegate;
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnOrderAddedDelegate, UAFA_ToyOrder* NewOrder)
+	FOnOrderAddedDelegate OnOrderAddedDelegate;
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnToyVerified, bool bIsValid)
 	FOnToyVerified OnToyVerifiedDelegate;
 
@@ -42,7 +42,7 @@ public:
 	TArray<UAFA_ToyOrder*> GetCurrentOrders() { return CurrentOrders; }
 
 	// Orders related
-	void AddNewOrder(UAFA_ToyOrder* NewOrder); //{  }
+	void AddNewOrder(TSubclassOf<UAFA_ToyOrder> NewOrderClass);
 	void RemoveOrder(UAFA_ToyOrder* OrderToRemove); //{ CurrentOrders.Remove(OrderToRemove); }
 	void AddToScore(int32 ScoreToAdd);
 
@@ -51,8 +51,6 @@ public:
 	void StartCountdown(); // Countdown before the game starts. Usually called on the BeginPlay of the Level BP
 
 	// Order related
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<UAFA_ToyOrder*> CurrentOrders;
 

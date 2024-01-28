@@ -4,9 +4,21 @@
 #include "Widget/AFA_OrderWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Logic/AFA_ToyOrder.h"
 
-void UAFA_OrderWidget::InitialiseOrderWidget(FText InToyName, UMaterial* InOverlayTargetMaterial)
+void UAFA_OrderWidget::InitialiseOrderWidget(UAFA_ToyOrder* InOrder)
 {
-	ToyName->SetText(InToyName);
-	ToyOverlayImage->SetBrushFromMaterial(InOverlayTargetMaterial);
+	AssociatedOrder = InOrder;
+
+	ToyName->SetText(AssociatedOrder->ToyName);
+	ToyOverlayImage->SetBrushFromMaterial(AssociatedOrder->OverlayMaterial);
+
+	AssociatedOrder->OnOrderRemovedDelegate.BindUObject(this, &UAFA_OrderWidget::OnOrderRemoved);
+}
+
+void UAFA_OrderWidget::OnOrderRemoved()
+{
+	AssociatedOrder->OnOrderRemovedDelegate.Unbind();
+
+	RemoveFromParent();
 }

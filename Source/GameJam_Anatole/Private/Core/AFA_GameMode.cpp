@@ -30,11 +30,17 @@ void AAFA_GameMode::StopGame()
 	// TODO
 }
 
-void AAFA_GameMode::AddNewOrder(UAFA_ToyOrder* NewOrder)
+void AAFA_GameMode::AddNewOrder(TSubclassOf<UAFA_ToyOrder> NewOrderClass)
 {
-	CurrentOrders.Add(NewOrder);
+	UAFA_ToyOrder* SpawnedNewOrder = NewObject<UAFA_ToyOrder>(this, NewOrderClass);
+	if (!ensure(SpawnedNewOrder != nullptr))
+		return;
 
-	OnOrdersChangedDelegate.Broadcast();
+	SpawnedNewOrder->InitialiseOrder();
+
+	CurrentOrders.Add(SpawnedNewOrder);
+
+	OnOrderAddedDelegate.Broadcast(SpawnedNewOrder);
 }
 
 void AAFA_GameMode::RemoveOrder(UAFA_ToyOrder* OrderToRemove)
@@ -42,7 +48,7 @@ void AAFA_GameMode::RemoveOrder(UAFA_ToyOrder* OrderToRemove)
 	CurrentOrders.Remove(OrderToRemove);
 	OrderToRemove->ConditionalBeginDestroy();
 
-	OnOrdersChangedDelegate.Broadcast();
+	//OnOrdersChangedDelegate.Broadcast();
 }
 
 void AAFA_GameMode::AddToScore(int32 ScoreToAdd)

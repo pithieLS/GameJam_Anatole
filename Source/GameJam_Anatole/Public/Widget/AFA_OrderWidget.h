@@ -15,7 +15,10 @@ class GAMEJAM_ANATOLE_API UAFA_OrderWidget : public UUserWidget
 	GENERATED_BODY()
 public:
 
-	void InitialiseOrderWidget(FText InToyName, UMaterial* InOverlayTargetMaterial);
+	void InitialiseOrderWidget(class UAFA_ToyOrder* InOrder);
+
+	UFUNCTION()
+	void OnOrderRemoved();
 
 protected:
 
@@ -30,4 +33,7 @@ protected:
 	class UImage* ToyOverlayImage;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ToyName;
+
+	UPROPERTY(BlueprintReadOnly)
+	UAFA_ToyOrder* AssociatedOrder;
 };

@@ -7,6 +7,7 @@
 #include "Components/BoxComponent.h"
 #include <Kismet/GameplayStatics.h>
 #include "Components/WidgetComponent.h"
+#include "Actor/AFA_ToyOverlayActor.h"
 
 
 // Sets default values
@@ -45,6 +46,22 @@ void AAFA_ValidationConveyor::BeginPlay()
 	if (!ensure(GameMode != nullptr))
 		return;
 
+	// Spawns all overlays actors for all available orders
+	FVector ToyOverlaySpawnLocation = FVector(0, 0, -500);
+	for (TSubclassOf<UAFA_ToyOrder> ToyOrder : AvailableOrders)
+	{
+		UAFA_ToyOrder* ToyOrderCDO = Cast<UAFA_ToyOrder>(ToyOrder->GetDefaultObject());
+		if (!ensure(ToyOrderCDO != nullptr))
+			return;
+
+		AAFA_ToyOverlayActor* SpawnedOverlayActor = GetWorld()->SpawnActor<AAFA_ToyOverlayActor>(ToyOrderCDO->ToyOverlayActor, ToyOverlaySpawnLocation, FRotator::ZeroRotator);
+		if (!ensure(SpawnedOverlayActor != nullptr))
+			return;
+
+		ToyOverlaySpawnLocation.Z -= 150;
+	}
+
+	// Bind delegates
 	GameMode->OnGameStartedDelegate.AddUObject(this, &AAFA_ValidationConveyor::OnGameStartedHandler);
 	ValidationBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AAFA_ValidationConveyor::OnBoxBeginOverlap);
 }
@@ -86,15 +103,9 @@ void AAFA_ValidationConveyor::OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool b
 
 void AAFA_ValidationConveyor::MakeNewOrder()
 {
-	const int32 RandIndex = FMath::RandRange(0, GameMode->AvailableOrders.Num() - 1);
+	const int32 RandIndex = FMath::RandRange(0, AvailableOrders.Num() - 1);
 
-	UAFA_ToyOrder* SpawnedNewOrder = NewObject<UAFA_ToyOrder>(this, GameMode->AvailableOrders[RandIndex]);
-	if (!ensure(SpawnedNewOrder != nullptr))
-		return;
-
-	SpawnedNewOrder->InitialiseOrder();
-
-	GameMode->AddNewOrder(SpawnedNewOrder);
+	GameMode->AddNewOrder(AvailableOrders[RandIndex]);
 }
 
 void AAFA_ValidationConveyor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
