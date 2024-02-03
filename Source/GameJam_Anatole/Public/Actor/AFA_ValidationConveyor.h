@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Logic/AFA_ToyOrder.h"
+#include "AFA_ConveyorBelt.h"
 #include "AFA_ValidationConveyor.generated.h"
 
 class UBoxComponent;
 class UWidgetComponent;
 
 UCLASS()
-class GAMEJAM_ANATOLE_API AAFA_ValidationConveyor : public AActor
+class GAMEJAM_ANATOLE_API AAFA_ValidationConveyor : public AAFA_ConveyorBelt
 {
 	GENERATED_BODY()
 	
@@ -34,20 +35,12 @@ protected:
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
-	void MoveObjects(float DeltaTime);
 	void DecrementOrdersLifetime(float DeltaTime);
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
-	UStaticMeshComponent* ConveyorBelt;
-	UPROPERTY(EditDefaultsOnly)
 	UBoxComponent* ValidationBoxComponent;
-	UPROPERTY(EditDefaultsOnly)
-	UBoxComponent* BeltCollision;
 
-	// Properties
-	UPROPERTY(EditAnywhere, Category = "Properties")
-	float BeltSpeed = 100;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")
 	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")

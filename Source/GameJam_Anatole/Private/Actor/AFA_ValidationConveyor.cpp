@@ -12,29 +12,11 @@
 
 // Sets default values
 AAFA_ValidationConveyor::AAFA_ValidationConveyor()
-{
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-	USceneComponent* SceneComponent = CreateDefaultSubobject<USceneComponent>("SceneComponent");
-	if (!ensure(SceneComponent != nullptr))
-		return;
-	SetRootComponent(SceneComponent);
-
-	ConveyorBelt = CreateDefaultSubobject<UStaticMeshComponent>("ConveyorBeltMesh");
-	if (!ensure(ConveyorBelt != nullptr))
-		return;
-	ConveyorBelt->SetupAttachment(RootComponent);
-
+{	
 	ValidationBoxComponent = CreateDefaultSubobject<UBoxComponent>("ValidationBoxComponent");
 	if (!ensure(ValidationBoxComponent != nullptr))
 		return;
 	ValidationBoxComponent->SetupAttachment(RootComponent);
-
-	BeltCollision = CreateDefaultSubobject<UBoxComponent>("BeltCollision");
-	if (!ensure(BeltCollision != nullptr))
-		return;
-	BeltCollision->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -114,19 +96,6 @@ void AAFA_ValidationConveyor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedC
 		VerifyOverlappedToy(CastedPiece);
 }
 
-void AAFA_ValidationConveyor::MoveObjects(float DeltaTime) 
-{
-	TArray<AActor*> OverlappedActors;
-	BeltCollision->GetOverlappingActors(OverlappedActors);
-	for (AActor* Piece : OverlappedActors)
-	{
-		if (AAFA_ToyPiece* CastedPiece = Cast<AAFA_ToyPiece>(Piece))
-		{
-			CastedPiece->GetMasterPiece()->AddActorWorldOffset((DeltaTime * BeltSpeed) * ConveyorBelt->GetForwardVector());
-		}
-	}
-}
-
 void AAFA_ValidationConveyor::DecrementOrdersLifetime(float DeltaTime)
 {
 	for (UAFA_ToyOrder* _Order : GameMode->GetCurrentOrders())
@@ -137,8 +106,6 @@ void AAFA_ValidationConveyor::DecrementOrdersLifetime(float DeltaTime)
 void AAFA_ValidationConveyor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	MoveObjects(DeltaTime);
 
 	DecrementOrdersLifetime(DeltaTime);
 }
