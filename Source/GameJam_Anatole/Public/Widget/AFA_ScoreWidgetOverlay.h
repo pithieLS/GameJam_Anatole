@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "AFA_MainWidget.generated.h"
+#include "AFA_ScoreWidgetOverlay.generated.h"
 
 class UTextBlock;
 
@@ -12,7 +12,7 @@ class UTextBlock;
  * 
  */
 UCLASS()
-class GAMEJAM_ANATOLE_API UAFA_MainWidget : public UUserWidget
+class GAMEJAM_ANATOLE_API UAFA_ScoreWidgetOverlay : public UUserWidget
 {
 	GENERATED_BODY()
 public:

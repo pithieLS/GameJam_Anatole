@@ -50,7 +50,7 @@ void AAFA_ToyPiece::BeginPlay()
 int32 AAFA_ToyPiece::FindClosestRotationForAxis(const float AxisRotation)
 {
 	// Initialize variables to keep track of the closest rotation and its angular distance
-	int32 ClosestRotation;
+	int32 ClosestRotation = 0;
 	int32 MinAngularDistance = INT32_MAX;
 
 	for (const int32 PossibleRotation : PossibleRotAngles)

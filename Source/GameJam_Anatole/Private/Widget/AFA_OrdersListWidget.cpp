@@ -3,7 +3,7 @@
 
 #include "Widget/AFA_OrdersListWidget.h"
 #include "Widget/AFA_OrderWidget.h"
-#include "Core/AFA_GameMode.h"
+#include "Core/GameModes/AFA_GameMode.h"
 #include "Logic/AFA_ToyOrder.h"
 #include "Components/HorizontalBox.h"
 #include <Kismet/GameplayStatics.h>

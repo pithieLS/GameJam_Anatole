@@ -24,29 +24,12 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void OnGameStartedHandler();
-
-	// Verification related
-	void VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece);
-	void OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool bIsValid);
-	UFUNCTION(BlueprintCallable)
-	void MakeNewOrder();
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
-	void DecrementOrdersLifetime(float DeltaTime);
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
 	UBoxComponent* ValidationBoxComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")
-	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")
-	float NewOrderDelay = 45;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties | Order/Verification")
-	int32 MaxOderNumber = 5;
 
 	class AAFA_GameMode* GameMode;
 

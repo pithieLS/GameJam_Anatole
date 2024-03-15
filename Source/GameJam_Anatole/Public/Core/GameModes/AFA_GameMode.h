@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Logic/AFA_ToyOrder.h"
-#include "Actor/AFA_ToyPiece.h"
 #include "AFA_GameMode.generated.h"
+
+class AAFA_ToyPiece;
 
 /**
  * 
@@ -20,11 +21,13 @@ public:
 	AAFA_GameMode();
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
+	// Gameflow functions
 	UFUNCTION(BlueprintCallable)
 	void StartGame();
 	UFUNCTION(BlueprintCallable)
-	void StopGame();
+	virtual void StopGame();
 
 	// Delegates
 	DECLARE_MULTICAST_DELEGATE(FOnGameStarted)
@@ -41,27 +44,51 @@ public:
 	bool GetIsGameRunning() { return bIsGameStarted; }
 	TArray<UAFA_ToyOrder*> GetCurrentOrders() { return CurrentOrders; }
 
+	// Verification related
+	void VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece);
+	void OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool bIsValid);
+	UFUNCTION(BlueprintCallable)
+	void MakeNewOrder();
+
 	// Orders related
+	void HandleOrdersCreation(float DeltaTime);
 	void AddNewOrder(TSubclassOf<UAFA_ToyOrder> NewOrderClass);
 	void RemoveOrder(UAFA_ToyOrder* OrderToRemove); //{ CurrentOrders.Remove(OrderToRemove); }
+	void DecrementOrdersLifetime(float DeltaTime);
 	void AddToScore(int32 ScoreToAdd);
 
 	// Countdown related
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	UFUNCTION(BlueprintCallable)
 	void StartCountdown(); // Countdown before the game starts. Usually called on the BeginPlay of the Level BP
 
 	// Order related
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
+	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<UAFA_ToyOrder*> CurrentOrders;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
+	float NewOrderDelay = 45;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
+	int32 MaxOderNumber = 5;
+	float LastOrderTimePassed = NewOrderDelay;
 
 	// Countdown related
 	UPROPERTY(BlueprintReadWrite)
 	float StartCountdownTimeLeft = 3;
+	UPROPERTY(EditDefaultsOnly)
+	class TSubclassOf<UUserWidget> CountdownWidgetClassBP;
+	class UUserWidget* CountdownWidget;
 
 protected:
 	// Score related
 	int32 Score = 0;
 
+	// Gameflow related
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsGameStarted = false;
+
+	// Properties
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Properties")
+	TSubclassOf<UUserWidget> HUDWidgetClassBP;
+
 };

@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Widget/AFA_MainWidget.h"
-#include "Core/AFA_GameMode.h"
+#include "Widget/AFA_ScoreWidgetOverlay.h"
+#include "Core/GameModes/AFA_GameMode.h"
 #include "Components/TextBlock.h"
 #include <Kismet/GameplayStatics.h>
 
-void UAFA_MainWidget::NativeConstruct()
+void UAFA_ScoreWidgetOverlay::NativeConstruct()
 {
 	Super::NativeConstruct();
 
@@ -14,11 +14,11 @@ void UAFA_MainWidget::NativeConstruct()
 	if (!ensure(GameMode != nullptr))
 		return;
 
-	GameMode->OnScoreChangedDelegate.AddUObject(this, &UAFA_MainWidget::UpdateScoreText);
+	GameMode->OnScoreChangedDelegate.AddUObject(this, &UAFA_ScoreWidgetOverlay::UpdateScoreText);
 	UpdateScoreText();
 }
 
-void UAFA_MainWidget::UpdateScoreText()
+void UAFA_ScoreWidgetOverlay::UpdateScoreText()
 {
 	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
 	if (!ensure(GameMode != nullptr))

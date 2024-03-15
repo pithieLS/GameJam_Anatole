@@ -4,7 +4,7 @@
 #include "Logic/AFA_ToyOrder.h"
 #include "Actor/AFA_ToyPiece.h"
 #include "Components/SphereComponent.h"
-#include "Core/AFA_GameMode.h"
+#include "Core/GameModes/AFA_GameMode.h"
 #include <Kismet/GameplayStatics.h>
 
 void UAFA_ToyOrder::BeginDestroy()
