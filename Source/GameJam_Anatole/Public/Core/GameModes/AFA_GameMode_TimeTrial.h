@@ -24,14 +24,15 @@ public:
 	virtual void StopGame() override;
 
 	// Getters
+	UFUNCTION(BlueprintPure, BlueprintCallable)
 	float GetTimerValue() { return TimerValue; }
 
 protected:
 
 	// Timer related func
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void StartTimer();
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void OnTimerEnd();
 
 	// Timer related var

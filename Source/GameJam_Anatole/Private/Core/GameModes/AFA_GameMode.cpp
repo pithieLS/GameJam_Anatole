@@ -17,6 +17,9 @@ void AAFA_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.bCanEverTick = true;
+
 	//Create PlayerController for second player;
 	APlayerController* NewController = UGameplayStatics::CreatePlayer(this, -1, true);
 
@@ -37,6 +40,9 @@ void AAFA_GameMode::BeginPlay()
 
 	// Create HUD
 	UUserWidget* HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClassBP);
+	if (!ensure(HUDWidget != nullptr))
+		return;
+
 	HUDWidget->AddToViewport();
 }
 
@@ -58,7 +64,7 @@ void AAFA_GameMode::Tick(float DeltaTime)
 		if (StartCountdownTimeLeft <= 0) // Where game starts
 		{
 			StartGame();
-			CountdownWidget->BeginDestroy();
+			CountdownWidget->ConditionalBeginDestroy();
 
 		}
 	}

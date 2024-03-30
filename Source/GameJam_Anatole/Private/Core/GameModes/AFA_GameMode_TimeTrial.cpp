@@ -8,6 +8,8 @@ void AAFA_GameMode_TimeTrial::BeginPlay()
 	Super::BeginPlay();
 
 	TimerValue = TimerMax;
+
+	OnGameStartedDelegate.AddUObject(this, &AAFA_GameMode_TimeTrial::StartTimer);
 }
 
 void AAFA_GameMode_TimeTrial::Tick(float DeltaTime)

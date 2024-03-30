@@ -13,8 +13,3 @@ void UAFA_TimerWidgetOverlay::NativeConstruct()
 	if (!ensure(GameModeTimeTrial != nullptr))
 		return;
 }
-
-void UAFA_TimerWidgetOverlay::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
-{
-	CountdownText->SetText(FText::AsNumber(GameModeTimeTrial->GetTimerValue()));
-}
