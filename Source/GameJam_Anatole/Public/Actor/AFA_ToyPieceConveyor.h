@@ -22,14 +22,18 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnToyPiece();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnGameStartedHandler();
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* ToyPieceSpawnPoint;
 
 	// Properties
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
 	TArray<TSubclassOf<class AAFA_ToyPiece>> ToyPiecesToSpawn;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
+	float SpawnRate = 5;
 
 public:	
 	// Called every frame

@@ -51,13 +51,13 @@ void AAFA_GameMode::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Order related
-	if (bIsGameStarted)
+	if (bIsGameRunning)
 	{
 		DecrementOrdersLifetime(DeltaTime);
 		HandleOrdersCreation(DeltaTime);
 	}
 
-	if (bIsGameStarted == false)
+	if (bIsGameRunning == false)
 	{
 		StartCountdownTimeLeft -= DeltaTime;
 
@@ -72,19 +72,19 @@ void AAFA_GameMode::Tick(float DeltaTime)
 
 void AAFA_GameMode::StartGame()
 {
-	bIsGameStarted = true;
+	bIsGameRunning = true;
 	OnGameStartedDelegate.Broadcast();
 }
 
 void AAFA_GameMode::StopGame()
 {
-	bIsGameStarted = false;
+	bIsGameRunning = false;
 	// Configure in child class
 }
 
 void AAFA_GameMode::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 {
-	if (!bIsGameStarted)
+	if (!bIsGameRunning)
 		return;
 
 	bool bIsAnyToyValid = false;

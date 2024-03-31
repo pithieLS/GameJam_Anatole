@@ -33,6 +33,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnGameStartedHandler();
+
 	bool CheckClawCollision(FVector Direction) const;
 	void AttachToClaw(AAFA_ToyPiece* ToyPieceToAttach);
 
@@ -110,6 +113,8 @@ protected:
 	FRotator ToyNextRot = FRotator(0, 0, 0);
 	FRotator ToyStartRot;
 	int32 RotAmount = 90;
+
+	bool bCanMove = false;
 
 public:	
 	// Called every frame

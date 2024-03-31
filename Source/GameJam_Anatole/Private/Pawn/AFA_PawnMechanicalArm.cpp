@@ -8,6 +8,7 @@
 #include "Components/BoxComponent.h"
 #include "Actor/AFA_ToyPiece.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "Core/GameModes/AFA_GameMode.h"
 
 AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 {
@@ -103,6 +104,18 @@ void AAFA_PawnMechanicalArm::BeginPlay()
 	TimelineRot.AddInterpFloat(CurveFloat, TimelineProgress);
 	OnTimelineFinishedCallback.BindUFunction(this, "OnRotateFinished");
 	TimelineRot.SetTimelineFinishedFunc(OnTimelineFinishedCallback);
+
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	// Bind delegates
+	GameMode->OnGameStartedDelegate.AddUObject(this, &AAFA_PawnMechanicalArm::OnGameStartedHandler);
+}
+
+void AAFA_PawnMechanicalArm::OnGameStartedHandler()
+{
+	bCanMove = true;
 }
 
 bool AAFA_PawnMechanicalArm::CheckClawCollision(FVector Direction) const
@@ -181,6 +194,9 @@ void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
 	if (AxisValue == 0)
 		return;
 
+	if (!bCanMove)
+		return;
+
 	FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the X axis
@@ -210,6 +226,9 @@ void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
 	if (AxisValue == 0)
 		return;
 
+	if (!bCanMove)
+		return;
+
 	float ClawRoll = Claw->GetRelativeRotation().Roll;
 
 	// Cap the roll axis
@@ -237,6 +256,9 @@ void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
 void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 {
 	if (AxisValue == 0)
+		return;
+
+	if (!bCanMove)
 		return;
 
 	const FVector ClawLoc = Claw->GetRelativeLocation();
@@ -269,6 +291,9 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 	if (AxisValue == 0)
 		return;
 
+	if (!bCanMove)
+		return;
+
 	FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the Z axis
@@ -295,6 +320,9 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 
 void AAFA_PawnMechanicalArm::GrabDropObject()
 {
+	if (!bCanMove)
+		return;
+
 											// If a toy piece is grabbed, drop it
 	if (GrabbedToyPiece != nullptr)
 	{
@@ -334,6 +362,9 @@ void AAFA_PawnMechanicalArm::WeldObjects()
 	if (GrabbedToyPiece == nullptr)
 		return;
 
+	if (!bCanMove)
+		return;
+
 	TArray<AAFA_ToyPiece*> AttachedPieces = GrabbedToyPiece->GetAllAttachedPieces();
 	for (AAFA_ToyPiece* ToyPiece : AttachedPieces)
 	{
@@ -364,6 +395,9 @@ void AAFA_PawnMechanicalArm::UnWeldObjects()
 	if (GrabbedToyPiece == nullptr)
 		return;
 
+	if (!bCanMove)
+		return;
+
 	TArray<AAFA_ToyPiece*> AttachedPieces = GrabbedToyPiece->GetAllAttachedPieces();
 	for (AAFA_ToyPiece* ToyPiece : AttachedPieces)
 	{
@@ -375,6 +409,9 @@ void AAFA_PawnMechanicalArm::UnWeldObjects()
 
 void AAFA_PawnMechanicalArm::OnRequestRotateToy(float AxisValue)
 {
+	if (!bCanMove)
+		return;
+
 	// If grabbed object is rotating, return
 	if (bIsToyRotating)
 		return;

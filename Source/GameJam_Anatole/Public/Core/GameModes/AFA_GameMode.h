@@ -41,7 +41,8 @@ public:
 
 	// Getters
 	int32 GetScore() { return Score; }
-	bool GetIsGameRunning() { return bIsGameStarted; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool GetIsGameRunning() { return bIsGameRunning; }
 	TArray<UAFA_ToyOrder*> GetCurrentOrders() { return CurrentOrders; }
 
 	// Verification related
@@ -85,7 +86,7 @@ protected:
 
 	// Gameflow related
 	UPROPERTY(BlueprintReadWrite)
-	bool bIsGameStarted = false;
+	bool bIsGameRunning = false;
 
 	// Properties
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Properties")
