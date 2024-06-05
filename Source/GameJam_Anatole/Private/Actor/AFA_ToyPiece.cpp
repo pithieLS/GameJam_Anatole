@@ -150,7 +150,6 @@ void AAFA_ToyPiece::DetachFromToyPiece()
 	//PieceMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 	PieceMesh->SetSimulatePhysics(true);
 	DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
-
 	for (TPair<USphereComponent*, AAFA_ToyPiece*> AttachPointPieces : AttachPointsToPieceMap)
 	{
 		AttachPointsToPieceMap.Add(AttachPointPieces.Key, nullptr);

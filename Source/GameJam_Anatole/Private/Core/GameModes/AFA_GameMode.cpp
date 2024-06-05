@@ -155,8 +155,14 @@ void AAFA_GameMode::RemoveOrder(UAFA_ToyOrder* OrderToRemove)
 
 void AAFA_GameMode::DecrementOrdersLifetime(float DeltaTime)
 {
-	for (UAFA_ToyOrder* _Order : CurrentOrders)
-		_Order->DecrementLifetime(DeltaTime);
+	for (int32 OrderIndex = 0; OrderIndex < CurrentOrders.Num(); OrderIndex++)
+	{
+		UAFA_ToyOrder* _Order = CurrentOrders[OrderIndex];
+		if(!_Order)
+			continue;
+
+		CurrentOrders[OrderIndex]->DecrementLifetime(DeltaTime);
+	}
 }
 
 void AAFA_GameMode::AddToScore(int32 ScoreToAdd)
