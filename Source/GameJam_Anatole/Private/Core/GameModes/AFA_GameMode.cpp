@@ -44,6 +44,11 @@ void AAFA_GameMode::BeginPlay()
 		return;
 
 	HUDWidget->AddToViewport();
+
+	// Add available order to the map that count the number of times an order has been verificated
+	OrderVerificationCount.Empty();
+	for (TSubclassOf<UAFA_ToyOrder> _Order : AvailableOrders)
+		OrderVerificationCount.Add(_Order, 0);
 }
 
 void AAFA_GameMode::Tick(float DeltaTime)
@@ -63,6 +68,8 @@ void AAFA_GameMode::Tick(float DeltaTime)
 
 		if (StartCountdownTimeLeft <= 0) // Where game starts
 		{
+			bIsStartCountdownStarted = false;
+
 			StartGame();
 			CountdownWidget->ConditionalBeginDestroy();
 
@@ -109,11 +116,17 @@ void AAFA_GameMode::OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool bIsValid)
 {
 	const int32 ScoreToAdd = bIsValid ? 1 : -1;
 	AddToScore(ScoreToAdd);
+	if(bIsValid)
+	{
+		int32 OrderVerifiedCountNb = *OrderVerificationCount.Find(VerifiedOrder->GetClass());
+		OrderVerificationCount.Add(VerifiedOrder->GetClass(), OrderVerifiedCountNb + 1);
+	}
 
 	OnToyVerifiedDelegate.Broadcast(bIsValid);
 
 	if (bIsValid)
 		RemoveOrder(VerifiedOrder);
+
 }
 
 void AAFA_GameMode::MakeNewOrder()

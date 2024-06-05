@@ -36,6 +36,8 @@ void AAFA_ToyPieceConveyor::SpawnToyPiece()
 	int32 RandIndex = FMath::RandRange(0, ToyPiecesToSpawn.Num() - 1);
 
 	AActor* SpawnedToyPiece = GetWorld()->SpawnActor<AActor>(ToyPiecesToSpawn[RandIndex], ToyPieceSpawnPoint->GetComponentTransform());
+	if (!ensure(SpawnedToyPiece != nullptr))
+		return;
 }
 
 // Called every frame

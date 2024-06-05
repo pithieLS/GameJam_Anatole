@@ -62,17 +62,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartCountdown(); // Countdown before the game starts. Usually called on the BeginPlay of the Level BP
 
-	// Order related
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
-	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TArray<UAFA_ToyOrder*> CurrentOrders;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
-	float NewOrderDelay = 45;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
-	int32 MaxOderNumber = 5;
-	float LastOrderTimePassed = NewOrderDelay;
-
 	// Countdown related
 	UPROPERTY(BlueprintReadWrite)
 	float StartCountdownTimeLeft = 3;
@@ -88,6 +77,19 @@ protected:
 	// Gameflow related
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsGameRunning = false;
+
+	// Order related
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
+	TArray<TSubclassOf<UAFA_ToyOrder>> AvailableOrders;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<TSubclassOf<UAFA_ToyOrder>, int32> OrderVerificationCount;
+	UPROPERTY(BlueprintReadOnly)
+	TArray<UAFA_ToyOrder*> CurrentOrders;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
+	float NewOrderDelay = 45;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Order/Verification")
+	int32 MaxOderNumber = 5;
+	float LastOrderTimePassed = NewOrderDelay;
 
 	// Properties
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Properties")

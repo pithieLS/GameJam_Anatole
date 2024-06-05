@@ -39,5 +39,5 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Time Trial Properties")
 	float TimerMax;
 	float TimerValue;
-	bool isTimerStarted = false;
+	bool isTimerRunning = false;
 };

@@ -16,15 +16,16 @@ void AAFA_GameMode_TimeTrial::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (isTimerStarted)
+	if (isTimerRunning)
 	{
 		TimerValue -= DeltaTime;
 
 		if (TimerValue <= 0)
 		{
-			OnTimerEnd();
-			isTimerStarted = false;
+			isTimerRunning = false;
 			TimerValue = 0;
+
+			OnTimerEnd();
 		}
 	}
 }
@@ -38,7 +39,7 @@ void AAFA_GameMode_TimeTrial::StopGame()
 
 void AAFA_GameMode_TimeTrial::StartTimer()
 {
-	isTimerStarted = true;
+	isTimerRunning = true;
 }
 
 void AAFA_GameMode_TimeTrial::OnTimerEnd()
