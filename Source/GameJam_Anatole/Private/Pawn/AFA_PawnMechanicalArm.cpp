@@ -350,7 +350,7 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	if (GrabbedToyPiece != nullptr)
 	{
 		AAFA_ToyPiece* MasterPiece = GrabbedToyPiece->GetMasterPiece();
-		FRotator NewValidRotation = MasterPiece->GetClosestRotation();
+		FRotator NewValidRotation = MasterPiece->GetClosestRotation(false);
 		MasterPiece->SetActorRotation(NewValidRotation);
 
 		AttachToClaw(GrabbedToyPiece);

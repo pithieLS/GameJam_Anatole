@@ -18,7 +18,7 @@ public:
 	// Sets default values for this actor's properties
 	AAFA_ToyPiece();
 
-	FRotator GetClosestRotation(); // Get closest rotation from the ValidRotation array
+	FRotator GetClosestRotation(bool bIsGettingClosestRelativeRot); // Get closest rotation from the ValidRotation array
 
 	// Getters
 	UStaticMeshComponent* GetPieceMesh() { return PieceMesh; }

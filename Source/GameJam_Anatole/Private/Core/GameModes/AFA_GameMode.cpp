@@ -57,7 +57,7 @@ void AAFA_GameMode::Tick(float DeltaTime)
 		HandleOrdersCreation(DeltaTime);
 	}
 
-	if (bIsGameRunning == false)
+	if (bIsStartCountdownStarted && bIsGameRunning == false)
 	{
 		StartCountdownTimeLeft -= DeltaTime;
 
@@ -177,4 +177,6 @@ void AAFA_GameMode::StartCountdown()
 {
 	CountdownWidget = CreateWidget<UUserWidget>(GetWorld(), CountdownWidgetClassBP); // Create countdown widget
 	CountdownWidget->AddToViewport();
+
+	bIsStartCountdownStarted = true;
 }

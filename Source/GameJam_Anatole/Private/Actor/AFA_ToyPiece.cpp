@@ -68,12 +68,18 @@ int32 AAFA_ToyPiece::FindClosestRotationForAxis(const float AxisRotation)
 	return ClosestRotation;
 }
 
-FRotator AAFA_ToyPiece::GetClosestRotation()
+FRotator AAFA_ToyPiece::GetClosestRotation(bool bIsGettingClosestRelativeRot)
 {
+	FRotator CurrentRotation;
+	if (bIsGettingClosestRelativeRot)
+		CurrentRotation = RootComponent->GetRelativeRotation();
+	else
+		CurrentRotation = GetActorRotation();
+
 	FRotator PieceRot;
-	PieceRot.Pitch = FindClosestRotationForAxis(GetActorRotation().Pitch);
-	PieceRot.Yaw = FindClosestRotationForAxis(GetActorRotation().Yaw);
-	PieceRot.Roll = FindClosestRotationForAxis(GetActorRotation().Roll);
+	PieceRot.Pitch = FindClosestRotationForAxis(CurrentRotation.Pitch);
+	PieceRot.Yaw = FindClosestRotationForAxis(CurrentRotation.Yaw);
+	PieceRot.Roll = FindClosestRotationForAxis(CurrentRotation.Roll);
 
 	return PieceRot;
 }
@@ -179,9 +185,9 @@ void AAFA_ToyPiece::AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo)
 	ToyPieceToAttachTo->AttachPointsToPieceMap.Add(TargetAttachPoint, this);
 
 	// Calculate the attach position and attach to ToyPieceToAttachTo
-	FRotator PieceRot = GetClosestRotation();
-	SetActorRotation(PieceRot);
 	AttachToActor(ToyPieceToAttachTo, AttachTransformRules);
+	FRotator PieceRot = GetClosestRotation(true);
+	SetActorRelativeRotation(PieceRot);
 	FVector DistanceRootAndAttach = GetActorLocation() - SelfAttachPoint->GetComponentLocation();
 	SetActorLocation(TargetAttachPoint->GetComponentLocation() + DistanceRootAndAttach);
 
@@ -208,10 +214,10 @@ void AAFA_ToyPiece::AttachGroupToToyPiece(USphereComponent* AttachPointToAttach,
 	AttachPointsToPieceMap.Add(AttachPointToAttach, TargetPiece);
 	TargetPiece->AttachPointsToPieceMap.Add(TargetAttachPoint, this);
 
-	// Attach the actor and calculate the attach position
-	FRotator PieceRot = MasterPiece->GetClosestRotation();
-	MasterPiece->SetActorRotation(PieceRot);
+	// Attach the actor and calculate the attach position and rotation
 	MasterPiece->AttachToActor(TargetPiece, AttachTransformRules);
+	FRotator PieceRot = MasterPiece->GetClosestRotation(true);
+	MasterPiece->SetActorRelativeRotation(PieceRot);
 	MasterPiece->PieceMesh->SetSimulatePhysics(false);
 	FVector DistanceAttachedPieceAndMasterPiece = MasterPiece->GetActorLocation() - GetActorLocation();
 	FVector DistanceRootAndAttach = GetActorLocation() - AttachPointToAttach->GetComponentLocation();

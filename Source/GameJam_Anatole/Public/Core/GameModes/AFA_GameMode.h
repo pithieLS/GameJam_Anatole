@@ -79,6 +79,7 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	class TSubclassOf<UUserWidget> CountdownWidgetClassBP;
 	class UUserWidget* CountdownWidget;
+	bool bIsStartCountdownStarted = false;
 
 protected:
 	// Score related
