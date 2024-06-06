@@ -4,7 +4,7 @@
 #include "Core/GameModes/AFA_GameMode.h"
 #include "Pawn/AFA_PawnMechanicalArm.h"
 #include <Kismet/GameplayStatics.h>
-#include "Actor/AFA_ToyOverlayActor.h"
+#include "Actor/AFA_ToyRTActor.h"
 #include "Actor/AFA_ToyPiece.h"
 #include <Blueprint/UserWidget.h>
 
@@ -31,7 +31,7 @@ void AAFA_GameMode::BeginPlay()
 		if (!ensure(ToyOrderCDO != nullptr))
 			return;
 
-		AAFA_ToyOverlayActor* SpawnedOverlayActor = GetWorld()->SpawnActor<AAFA_ToyOverlayActor>(ToyOrderCDO->ToyOverlayActor, ToyOverlaySpawnLocation, FRotator::ZeroRotator);
+		AAFA_ToyRTActor* SpawnedOverlayActor = GetWorld()->SpawnActor<AAFA_ToyRTActor>(ToyOrderCDO->ToyOverlayActor, ToyOverlaySpawnLocation, FRotator::ZeroRotator);
 		if (!ensure(SpawnedOverlayActor != nullptr))
 			return;
 
@@ -49,6 +49,9 @@ void AAFA_GameMode::BeginPlay()
 	OrderVerificationCount.Empty();
 	for (TSubclassOf<UAFA_ToyOrder> _Order : AvailableOrders)
 		OrderVerificationCount.Add(_Order, 0);
+
+	//Bind delegated
+	OnGameEndedDelegate.AddUObject(this, &AAFA_GameMode::OnGameEndedHandler);
 }
 
 void AAFA_GameMode::Tick(float DeltaTime)
@@ -86,6 +89,7 @@ void AAFA_GameMode::StartGame()
 void AAFA_GameMode::StopGame()
 {
 	bIsGameRunning = false;
+	OnGameEndedDelegate.Broadcast();
 	// Configure in child class
 }
 

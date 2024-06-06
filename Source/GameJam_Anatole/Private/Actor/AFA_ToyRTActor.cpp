@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actor/AFA_ToyOverlayActor.h"
+#include "Actor/AFA_ToyRTActor.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/StaticMeshComponent.h"
 
 // Sets default values
-AAFA_ToyOverlayActor::AAFA_ToyOverlayActor()
+AAFA_ToyRTActor::AAFA_ToyRTActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -23,7 +23,7 @@ AAFA_ToyOverlayActor::AAFA_ToyOverlayActor()
 }
 
 // Called when the game starts or when spawned
-void AAFA_ToyOverlayActor::BeginPlay()
+void AAFA_ToyRTActor::BeginPlay()
 {
 	Super::BeginPlay();
 	

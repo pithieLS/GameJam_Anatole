@@ -59,7 +59,10 @@ public:
 	FText ToyName;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AAFA_ToyOverlayActor> ToyOverlayActor;
+	TSubclassOf<class AAFA_ToyRTActor> ToyOverlayActor;
+
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMesh* CompleteToyMesh;
 
 	UPROPERTY(EditDefaultsOnly)
 	UMaterial* OverlayMaterial;

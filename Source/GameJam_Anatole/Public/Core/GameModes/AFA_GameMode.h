@@ -28,10 +28,14 @@ public:
 	void StartGame();
 	UFUNCTION(BlueprintCallable)
 	virtual void StopGame();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnGameEndedHandler();
 
 	// Delegates
 	DECLARE_MULTICAST_DELEGATE(FOnGameStarted)
 	FOnGameStarted OnGameStartedDelegate;
+	DECLARE_MULTICAST_DELEGATE(FOnGameEnded)
+	FOnGameEnded OnGameEndedDelegate;
 	DECLARE_MULTICAST_DELEGATE(FOnScoreChanged)
 	FOnScoreChanged OnScoreChangedDelegate;
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnOrderAddedDelegate, UAFA_ToyOrder* NewOrder)

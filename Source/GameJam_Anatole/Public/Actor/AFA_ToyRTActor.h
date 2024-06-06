@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "AFA_ToyOverlayActor.generated.h"
+#include "AFA_ToyRTActor.generated.h"
 
 UCLASS()
-class GAMEJAM_ANATOLE_API AAFA_ToyOverlayActor : public AActor
+class GAMEJAM_ANATOLE_API AAFA_ToyRTActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AAFA_ToyOverlayActor();
+	AAFA_ToyRTActor();
 
 protected:
 	// Called when the game starts or when spawned
