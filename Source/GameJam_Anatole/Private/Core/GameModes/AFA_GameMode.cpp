@@ -93,6 +93,14 @@ void AAFA_GameMode::StopGame()
 	// Configure in child class
 }
 
+void AAFA_GameMode::OnGameEndedHandler_Implementation()
+{
+	if(!ensure(GEngine != nullptr))
+		return;
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("(!) Please override the OnGameEndedHandler event in this level gamemode's bp class (!)"));
+}
+
 void AAFA_GameMode::VerifyOverlappedToy(AAFA_ToyPiece* InToyPiece)
 {
 	if (!bIsGameRunning)

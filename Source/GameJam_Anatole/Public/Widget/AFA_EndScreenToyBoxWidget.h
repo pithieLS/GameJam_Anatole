@@ -28,6 +28,6 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ScoreText;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
 	class UButton* RetryButton;
 };

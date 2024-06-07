@@ -28,7 +28,7 @@ public:
 	void StartGame();
 	UFUNCTION(BlueprintCallable)
 	virtual void StopGame();
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintNativeEvent)
 	void OnGameEndedHandler();
 
 	// Delegates

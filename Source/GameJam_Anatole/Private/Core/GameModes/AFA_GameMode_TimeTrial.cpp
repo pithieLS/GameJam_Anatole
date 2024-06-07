@@ -33,8 +33,6 @@ void AAFA_GameMode_TimeTrial::Tick(float DeltaTime)
 void AAFA_GameMode_TimeTrial::StopGame()
 {
 	Super::StopGame();
-
-	// TODO: show end screen widget + disable input
 }
 
 void AAFA_GameMode_TimeTrial::StartTimer()

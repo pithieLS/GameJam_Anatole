@@ -40,13 +40,19 @@ void AAFA_ToyBoxRTActor::SpawnVerifiedToys(TMap<TSubclassOf<class UAFA_ToyOrder>
 	{
 		for (int32 OrderCount = 0; OrderCount < OrderToCount.Value; OrderCount++)
 		{
-			UStaticMeshComponent* NewToyMesh = CreateDefaultSubobject<UStaticMeshComponent>("ToyMesh" + MeshCount);
+			UStaticMeshComponent* NewToyMesh = NewObject<UStaticMeshComponent>(this);
 			if (!ensure(NewToyMesh != nullptr))
 				return;
 
-			NewToyMesh->SetStaticMesh(Cast<UAFA_ToyOrder>(OrderToCount.Key)->CompleteToyMesh);
-			NewToyMesh->SetWorldLocation(SpawnPoint->GetComponentLocation());
+			UAFA_ToyOrder* OrderCDO = Cast<UAFA_ToyOrder>(OrderToCount.Key->GetDefaultObject());
+			if (!ensure(OrderCDO != nullptr))
+				return;
 
+			NewToyMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+			NewToyMesh->RegisterComponent();
+			NewToyMesh->SetStaticMesh(OrderCDO->CompleteToyMesh);
+			NewToyMesh->SetWorldLocation(SpawnPoint->GetComponentLocation());
+			
 			MeshCount++;
 		}
 	}
