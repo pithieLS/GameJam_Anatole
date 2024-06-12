@@ -45,10 +45,10 @@ void AAFA_GameMode::BeginPlay()
 
 	HUDWidget->AddToViewport();
 
-	// Add available order to the map that count the number of times an order has been verificated
-	OrderVerificationCount.Empty();
-	for (TSubclassOf<UAFA_ToyOrder> _Order : AvailableOrders)
-		OrderVerificationCount.Add(_Order, 0);
+	//// Add available order to the map that count the number of times an order has been verificated
+	//OrderVerificationCount.Empty();
+	//for (TSubclassOf<UAFA_ToyOrder> _Order : AvailableOrders)
+	//	OrderVerificationCount.Add(_Order, 0);
 
 	//Bind delegated
 	OnGameEndedDelegate.AddUObject(this, &AAFA_GameMode::OnGameEndedHandler);

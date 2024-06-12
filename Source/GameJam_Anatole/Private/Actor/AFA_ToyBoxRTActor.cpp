@@ -33,29 +33,22 @@ AAFA_ToyBoxRTActor::AAFA_ToyBoxRTActor()
 
 }
 
-void AAFA_ToyBoxRTActor::SpawnVerifiedToys(TMap<TSubclassOf<class UAFA_ToyOrder>, int32> InOrderVerificationCount)
+void AAFA_ToyBoxRTActor::SpawnToyMesh(TSubclassOf<class UAFA_ToyOrder> InOrder)
 {
-	int32 MeshCount = 0;
-	for (TPair<TSubclassOf<class UAFA_ToyOrder>, int32> OrderToCount : InOrderVerificationCount)
-	{
-		for (int32 OrderCount = 0; OrderCount < OrderToCount.Value; OrderCount++)
-		{
-			UStaticMeshComponent* NewToyMesh = NewObject<UStaticMeshComponent>(this);
-			if (!ensure(NewToyMesh != nullptr))
-				return;
+	UStaticMeshComponent* NewToyMesh = NewObject<UStaticMeshComponent>(this);
+	if (!ensure(NewToyMesh != nullptr))
+		return;
 
-			UAFA_ToyOrder* OrderCDO = Cast<UAFA_ToyOrder>(OrderToCount.Key->GetDefaultObject());
-			if (!ensure(OrderCDO != nullptr))
-				return;
+	UAFA_ToyOrder* OrderCDO = Cast<UAFA_ToyOrder>(InOrder->GetDefaultObject());
+	if (!ensure(OrderCDO != nullptr))
+		return;
 
-			NewToyMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-			NewToyMesh->RegisterComponent();
-			NewToyMesh->SetStaticMesh(OrderCDO->CompleteToyMesh);
-			NewToyMesh->SetWorldLocation(SpawnPoint->GetComponentLocation());
-			
-			MeshCount++;
-		}
-	}
+	NewToyMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	NewToyMesh->RegisterComponent();
+	NewToyMesh->SetWorldScale3D(FVector(0.4f, 0.4f, 0.4f));
+	NewToyMesh->SetStaticMesh(OrderCDO->CompleteToyMesh);
+	NewToyMesh->SetRelativeLocation(SpawnPoint->GetRelativeLocation());
+	NewToyMesh->SetSimulatePhysics(true);
 }
 
 // Called when the game starts or when spawned

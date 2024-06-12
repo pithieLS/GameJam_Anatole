@@ -9,6 +9,7 @@
 #include "Actor/AFA_ToyPiece.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "Core/GameModes/AFA_GameMode.h"
+#include <Components/DecalComponent.h>
 
 AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 {
@@ -80,6 +81,12 @@ AAFA_PawnMechanicalArm::AAFA_PawnMechanicalArm()
 	if (!ensure(ClawPivot != nullptr))
 		return;
 	ClawPivot->SetupAttachment(Arm);
+
+	GrabbedToyShadowDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("GrabbedToyShadowDecal"));
+	if (!ensure(GrabbedToyShadowDecal != nullptr))
+		return;
+	GrabbedToyShadowDecal->SetupAttachment(RootComponent);
+	GrabbedToyShadowDecal->SetVisibility(false);
 }
 
 void AAFA_PawnMechanicalArm::DropToyPiece()
@@ -104,6 +111,8 @@ void AAFA_PawnMechanicalArm::BeginPlay()
 	TimelineRot.AddInterpFloat(CurveFloat, TimelineProgress);
 	OnTimelineFinishedCallback.BindUFunction(this, "OnRotateFinished");
 	TimelineRot.SetTimelineFinishedFunc(OnTimelineFinishedCallback);
+
+
 
 	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
 	if (!ensure(GameMode != nullptr))
@@ -327,6 +336,7 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	if (GrabbedToyPiece != nullptr)
 	{
 		GrabbedToyPiece->DetachFromArm();
+		GrabbedToyShadowDecal->SetVisibility(false);
 		return;
 	}
 											// If no toy piece grabbed, grab it
@@ -354,6 +364,8 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 		MasterPiece->SetActorRotation(NewValidRotation);
 
 		AttachToClaw(GrabbedToyPiece);
+
+		GrabbedToyShadowDecal->SetVisibility(true);
 	}
 }
 

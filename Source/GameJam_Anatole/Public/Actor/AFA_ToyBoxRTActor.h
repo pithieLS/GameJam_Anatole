@@ -15,9 +15,10 @@ public:
 	// Sets default values for this pawn's properties
 	AAFA_ToyBoxRTActor();
 
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void SpawnVerifiedToys(const TMap<TSubclassOf<class UAFA_ToyOrder>, int32>& InOrderVerificationCount);
 	UFUNCTION(BlueprintCallable)
-	void SpawnVerifiedToys(TMap<TSubclassOf<class UAFA_ToyOrder>, int32> InOrderVerificationCount);
-
+	void SpawnToyMesh(TSubclassOf<class UAFA_ToyOrder> InOrder);
 	UPROPERTY(EditDefaultsOnly)
 	int32 BoxRotationSpeed = 45; // Degrees per seconds
 

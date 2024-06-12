@@ -87,7 +87,7 @@ protected:
 	UStaticMeshComponent* ArmBaseMesh;
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* ClawMesh;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USceneComponent* GrabPoint;
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* Claw;	
@@ -103,6 +103,8 @@ protected:
 	UPhysicsConstraintComponent* ArmsPivot;
 	UPROPERTY(EditDefaultsOnly)
 	UPhysicsConstraintComponent* ClawPivot;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UDecalComponent* GrabbedToyShadowDecal;
 
 	// Toy related variables
 	AAFA_ToyPiece* GrabbedToyPiece = nullptr;
