@@ -7,10 +7,10 @@
 #include "Actor/AFA_ToyRTActor.h"
 #include "Actor/AFA_ToyPiece.h"
 #include <Blueprint/UserWidget.h>
+#include "Core/AFA_GameInstance.h"
 
 AAFA_GameMode::AAFA_GameMode()
 {
-	PlayerControllerClass = AAFA_GameMode::StaticClass();
 }
 
 void AAFA_GameMode::BeginPlay()
@@ -20,8 +20,17 @@ void AAFA_GameMode::BeginPlay()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Ensure that number of player has been properly set
+	UAFA_GameInstance* GameInstance = Cast<UAFA_GameInstance>(GetWorld()->GetGameInstance());
+	if (!ensure(GameInstance != nullptr))
+		return;
+	if(GameInstance->PlayerNumber == 0)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("(!) Please use the CustomOpenLevel from the GameMode and properly set the number of players (!)"));
+
 	//Create PlayerController for second player;
 	APlayerController* NewController = UGameplayStatics::CreatePlayer(this, -1, true);
+	if (!ensure(NewController != nullptr))
+		return;
 
 	// Spawns all overlays actors for all available orders
 	FVector ToyOverlaySpawnLocation = FVector(0, 0, -500);
@@ -78,6 +87,16 @@ void AAFA_GameMode::Tick(float DeltaTime)
 
 		}
 	}
+}
+
+void AAFA_GameMode::CustomOpenLevel(FString InLevelName, int32 InPlayerNumber)
+{
+	UAFA_GameInstance* GameInstance = Cast<UAFA_GameInstance>(GetWorld()->GetGameInstance());
+	if (!ensure(GameInstance != nullptr))
+		return;
+	GameInstance->PlayerNumber = InPlayerNumber;
+
+	UGameplayStatics::OpenLevel(this, FName(InLevelName));
 }
 
 void AAFA_GameMode::StartGame()

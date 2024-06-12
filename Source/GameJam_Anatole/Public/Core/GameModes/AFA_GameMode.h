@@ -23,6 +23,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void CustomOpenLevel(FString InLevelName, int32 InPlayerNumber);
+
 	// Gameflow functions
 	UFUNCTION(BlueprintCallable)
 	void StartGame();
