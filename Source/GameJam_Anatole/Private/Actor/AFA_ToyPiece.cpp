@@ -27,7 +27,7 @@ AAFA_ToyPiece::AAFA_ToyPiece()
 void AAFA_ToyPiece::DestroyToyGroup()
 {
 	for (AAFA_ToyPiece* Piece : GetAllAttachedPieces())
-		Piece->ConditionalBeginDestroy();
+		Piece->Destroy();
 }
 
 // Called when the game starts or when spawned

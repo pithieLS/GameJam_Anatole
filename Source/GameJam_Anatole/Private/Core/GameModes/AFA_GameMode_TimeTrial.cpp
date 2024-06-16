@@ -12,6 +12,13 @@ void AAFA_GameMode_TimeTrial::BeginPlay()
 	OnGameStartedDelegate.AddUObject(this, &AAFA_GameMode_TimeTrial::StartTimer);
 }
 
+void AAFA_GameMode_TimeTrial::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	OnGameStartedDelegate.RemoveAll(this);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AAFA_GameMode_TimeTrial::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

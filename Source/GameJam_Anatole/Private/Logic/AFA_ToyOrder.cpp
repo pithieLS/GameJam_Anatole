@@ -9,9 +9,9 @@
 
 void UAFA_ToyOrder::BeginDestroy()
 {
-	Super::BeginDestroy();
-
 	OnOrderRemovedDelegate.ExecuteIfBound();
+
+	Super::BeginDestroy();
 }
 
 void UAFA_ToyOrder::InitialiseOrder()

@@ -112,14 +112,24 @@ void AAFA_PawnMechanicalArm::BeginPlay()
 	OnTimelineFinishedCallback.BindUFunction(this, "OnRotateFinished");
 	TimelineRot.SetTimelineFinishedFunc(OnTimelineFinishedCallback);
 
-
-
 	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
 	if (!ensure(GameMode != nullptr))
 		return;
 
 	// Bind delegates
 	GameMode->OnGameStartedDelegate.AddUObject(this, &AAFA_PawnMechanicalArm::OnGameStartedHandler);
+}
+
+void AAFA_PawnMechanicalArm::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	// Unbind delegates
+	GameMode->OnGameStartedDelegate.RemoveAll(this);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AAFA_PawnMechanicalArm::OnGameStartedHandler()

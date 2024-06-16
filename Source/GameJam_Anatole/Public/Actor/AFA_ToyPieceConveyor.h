@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Actor/AFA_ConveyorBelt.h"
+#include "Actor/AFA_ToyPiece.h"
 #include "AFA_ToyPieceConveyor.generated.h"
 
 UCLASS()
@@ -16,9 +17,12 @@ public:
 	// Sets default values for this actor's properties
 	AAFA_ToyPieceConveyor();
 
+	void AddToyPieceToSpawn(TSubclassOf<class AAFA_ToyPiece> ToyPieceToAdd);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnToyPiece();

@@ -32,6 +32,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION()
 	void OnGameStartedHandler();
@@ -91,7 +92,7 @@ protected:
 	USceneComponent* GrabPoint;
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* Claw;	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	USceneComponent* Arm;	
 	UPROPERTY(EditDefaultsOnly)
 	UBoxComponent* GrabZone;

@@ -18,6 +18,17 @@ void UAFA_ScoreWidgetOverlay::NativeConstruct()
 	UpdateScoreText();
 }
 
+void UAFA_ScoreWidgetOverlay::NativeDestruct()
+{
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	GameMode->OnScoreChangedDelegate.RemoveAll(this);
+
+	Super::NativeDestruct();
+}
+
 void UAFA_ScoreWidgetOverlay::UpdateScoreText()
 {
 	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));

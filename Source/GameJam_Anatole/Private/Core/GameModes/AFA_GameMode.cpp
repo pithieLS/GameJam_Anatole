@@ -8,6 +8,8 @@
 #include "Actor/AFA_ToyPiece.h"
 #include <Blueprint/UserWidget.h>
 #include "Core/AFA_GameInstance.h"
+#include "Core/AFA_LevelActorManager.h"
+#include "Actor/AFA_ToyPieceConveyor.h"
 
 AAFA_GameMode::AAFA_GameMode()
 {
@@ -27,10 +29,7 @@ void AAFA_GameMode::BeginPlay()
 	if(GameInstance->PlayerNumber == 0)
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("(!) Please use the CustomOpenLevel from the GameMode and properly set the number of players (!)"));
 
-	//Create PlayerController for second player;
-	APlayerController* NewController = UGameplayStatics::CreatePlayer(this, -1, true);
-	if (!ensure(NewController != nullptr))
-		return;
+	ApplyPlayerNumberChanges();
 
 	// Spawns all overlays actors for all available orders
 	FVector ToyOverlaySpawnLocation = FVector(0, 0, -500);
@@ -51,16 +50,17 @@ void AAFA_GameMode::BeginPlay()
 	UUserWidget* HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClassBP);
 	if (!ensure(HUDWidget != nullptr))
 		return;
-
 	HUDWidget->AddToViewport();
-
-	//// Add available order to the map that count the number of times an order has been verificated
-	//OrderVerificationCount.Empty();
-	//for (TSubclassOf<UAFA_ToyOrder> _Order : AvailableOrders)
-	//	OrderVerificationCount.Add(_Order, 0);
 
 	//Bind delegated
 	OnGameEndedDelegate.AddUObject(this, &AAFA_GameMode::OnGameEndedHandler);
+}
+
+void AAFA_GameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	OnGameEndedDelegate.RemoveAll(this);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AAFA_GameMode::Tick(float DeltaTime)
@@ -83,7 +83,7 @@ void AAFA_GameMode::Tick(float DeltaTime)
 			bIsStartCountdownStarted = false;
 
 			StartGame();
-			CountdownWidget->ConditionalBeginDestroy();
+			CountdownWidget->RemoveFromParent();
 
 		}
 	}
@@ -223,4 +223,76 @@ void AAFA_GameMode::StartCountdown()
 	CountdownWidget->AddToViewport();
 
 	bIsStartCountdownStarted = true;
+}
+
+void AAFA_GameMode::ApplyPlayerNumberChanges()
+{
+	// Make timer because actors are not instantiated when gamemode's BeginPlay() is executed
+	FTimerHandle ApplyPlayerNumberChangesHandler;
+	GetWorld()->GetTimerManager().SetTimer(ApplyPlayerNumberChangesHandler, [this, &ApplyPlayerNumberChangesHandler]() {
+		AAFA_LevelActorManager* LevelActorManager = Cast<AAFA_LevelActorManager>(UGameplayStatics::GetActorOfClass(this, AAFA_LevelActorManager::StaticClass()));
+		if (!ensure(LevelActorManager != nullptr))
+			return;
+		TArray<AAFA_PawnMechanicalArm*>& _PlayersMechanicalArmPawn = LevelActorManager->PlayersMechanicalArmPawn;
+		TArray<AAFA_ToyPieceConveyor*>& _PlayersToyPieceConveyor = LevelActorManager->PlayersToyPieceConveyor;
+
+		UAFA_GameInstance* GameInstance = Cast<UAFA_GameInstance>(GetGameInstance());
+		if (!ensure(GameInstance != nullptr))
+			return;
+		int32 PlayerNumber = GameInstance->PlayerNumber;
+
+		if (PlayerNumber <= 0)
+			return;
+
+		// Destroy all unused mechanical arms and remove it from the OG array
+		for (int32 PawnIndex = PlayerNumber; PawnIndex < _PlayersMechanicalArmPawn.Num(); PawnIndex++)
+			_PlayersMechanicalArmPawn[PawnIndex]->Destroy();
+		_PlayersMechanicalArmPawn.SetNum(PlayerNumber);
+
+		// Destroy all unused conveyor and remove it from the OG array
+		for (int32 PawnIndex = PlayerNumber; PawnIndex < _PlayersToyPieceConveyor.Num(); PawnIndex++)
+			_PlayersToyPieceConveyor[PawnIndex]->Destroy();
+		_PlayersToyPieceConveyor.SetNum(PlayerNumber);
+
+		// Populate arrays of toy pieces of each conveyor
+		TArray<TArray<TSubclassOf<AAFA_ToyPiece>>> AllOrdersToyPieces;
+		int32 OrderIndex = 0;
+		// Add all associated toy pieces for each order in a double array
+		for (TSubclassOf<UAFA_ToyOrder> OrderSubClass : AvailableOrders)
+		{
+			UAFA_ToyOrder* OrderCDO = Cast<UAFA_ToyOrder>(OrderSubClass->GetDefaultObject());
+			TArray<TSubclassOf<AAFA_ToyPiece>> ToyPiecesClassOfOrder;
+
+			AllOrdersToyPieces.Add({});
+
+			// For each order, add the toy pieces that are in the verifications.
+			for (FPieceVerification PieceVerif : OrderCDO->PiecesVerifications)
+			{
+				AllOrdersToyPieces[OrderIndex].AddUnique(PieceVerif.VerificatedToyPiece);
+
+				for (TPair<FName, TSubclassOf<AAFA_ToyPiece>>& AttachedToyPiece : PieceVerif.AttachedToyPieces)
+					AllOrdersToyPieces[OrderIndex].AddUnique(AttachedToyPiece.Value);
+			}
+
+			OrderIndex++;
+		}
+
+		// Add toy pieces to each conveyor
+		int32 ConveyorIndexMax = PlayerNumber - 1;
+		int32 ConveyorIndex = 0;
+		for (TArray<TSubclassOf<AAFA_ToyPiece>> OrderToPieces : AllOrdersToyPieces)
+		{
+			for (TSubclassOf<AAFA_ToyPiece> ToyPiece : OrderToPieces)
+			{
+				LevelActorManager->AddToyPieceToConveyor(ConveyorIndex, ToyPiece);
+
+				if (ConveyorIndex >= ConveyorIndexMax)
+					ConveyorIndex = 0;
+				else
+					ConveyorIndex++;
+			}
+		}
+
+		GetWorld()->GetTimerManager().ClearTimer(ApplyPlayerNumberChangesHandler);
+		}, 0.05f, false);
 }

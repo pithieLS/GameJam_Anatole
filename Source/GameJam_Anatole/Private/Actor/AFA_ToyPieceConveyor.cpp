@@ -18,6 +18,11 @@ AAFA_ToyPieceConveyor::AAFA_ToyPieceConveyor()
 	ToyPieceSpawnPoint->SetupAttachment(RootComponent);
 }
 
+void AAFA_ToyPieceConveyor::AddToyPieceToSpawn(TSubclassOf<class AAFA_ToyPiece> ToyPieceToAdd)
+{
+	ToyPiecesToSpawn.Add(ToyPieceToAdd);
+}
+
 // Called when the game starts or when spawned
 void AAFA_ToyPieceConveyor::BeginPlay()
 {
@@ -29,6 +34,18 @@ void AAFA_ToyPieceConveyor::BeginPlay()
 
 	// Bind delegates
 	GameMode->OnGameStartedDelegate.AddUObject(this, &AAFA_ToyPieceConveyor::OnGameStartedHandler);
+}
+
+void AAFA_ToyPieceConveyor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	// Unbind delegates
+	GameMode->OnGameStartedDelegate.RemoveAll(this);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AAFA_ToyPieceConveyor::SpawnToyPiece()

@@ -19,6 +19,17 @@ void UAFA_OrdersListWidget::NativeConstruct()
 	GameMode->OnOrderAddedDelegate.AddUObject(this, &UAFA_OrdersListWidget::AddOrder);
 }
 
+void UAFA_OrdersListWidget::NativeDestruct()
+{
+	AAFA_GameMode* GameMode = Cast<AAFA_GameMode>(UGameplayStatics::GetGameMode(this));
+	if (!ensure(GameMode != nullptr))
+		return;
+
+	GameMode->OnOrderAddedDelegate.RemoveAll(this);
+
+	Super::NativeDestruct();
+}
+
 void UAFA_OrdersListWidget::AddOrder(UAFA_ToyOrder* NewOrder)
 {
 	UAFA_OrderWidget* NewOrderWidget = CreateWidget<UAFA_OrderWidget>(this, OrderWidgetClass);

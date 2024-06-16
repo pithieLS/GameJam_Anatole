@@ -20,6 +20,7 @@ class GAMEJAM_ANATOLE_API UAFA_OrdersListWidget : public UUserWidget
 	
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	void AddOrder(UAFA_ToyOrder* NewOrder);
 

@@ -19,6 +19,7 @@ class GAMEJAM_ANATOLE_API AAFA_GameMode_TimeTrial : public AAFA_GameMode
 public:
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void StopGame() override;

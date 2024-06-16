@@ -21,6 +21,7 @@ public:
 	AAFA_GameMode();
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
@@ -78,6 +79,9 @@ public:
 	bool bIsStartCountdownStarted = false;
 
 protected:
+
+	void ApplyPlayerNumberChanges();
+
 	// Score related
 	int32 Score = 0;
 
