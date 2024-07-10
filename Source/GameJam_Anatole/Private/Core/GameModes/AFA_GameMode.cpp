@@ -27,7 +27,7 @@ void AAFA_GameMode::BeginPlay()
 	if (!ensure(GameInstance != nullptr))
 		return;
 	if(GameInstance->PlayerNumber == 0)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("(!) Please use the CustomOpenLevel from the GameMode and properly set the number of players (!)"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("(!) Please use CustomOpenLevel from the GameMode and properly set the number of players (!)"));
 
 	ApplyPlayerNumberChanges();
 
@@ -70,8 +70,8 @@ void AAFA_GameMode::Tick(float DeltaTime)
 	// Order related
 	if (bIsGameRunning)
 	{
-		DecrementOrdersLifetime(DeltaTime);
 		HandleOrdersCreation(DeltaTime);
+		DecrementOrdersLifetime(DeltaTime);
 	}
 
 	if (bIsStartCountdownStarted && bIsGameRunning == false)
@@ -149,7 +149,11 @@ void AAFA_GameMode::OnToyVerified(UAFA_ToyOrder* VerifiedOrder, bool bIsValid)
 	AddToScore(ScoreToAdd);
 	if(bIsValid)
 	{
-		int32 OrderVerifiedCountNb = *OrderVerificationCount.Find(VerifiedOrder->GetClass());
+		int32 OrderVerifiedCountNb = 0;
+
+		if(OrderVerificationCount.Contains(VerifiedOrder->GetClass()))
+			OrderVerifiedCountNb = *OrderVerificationCount.Find(VerifiedOrder->GetClass());
+
 		OrderVerificationCount.Add(VerifiedOrder->GetClass(), OrderVerifiedCountNb + 1);
 	}
 
@@ -170,10 +174,11 @@ void AAFA_GameMode::MakeNewOrder()
 void AAFA_GameMode::HandleOrdersCreation(float DeltaTime)
 {
 	if (LastOrderTimePassed >= NewOrderDelay)
-	{
-		MakeNewOrder();
-		LastOrderTimePassed = 0;
-	}
+		if(CurrentOrders.Num() < MaxOderNumber)
+		{
+			MakeNewOrder();
+			LastOrderTimePassed = 0;
+		}
 
 	LastOrderTimePassed += DeltaTime;
 }
@@ -291,6 +296,15 @@ void AAFA_GameMode::ApplyPlayerNumberChanges()
 				else
 					ConveyorIndex++;
 			}
+		}
+
+		// If sp, increase player's claw's move range
+		if (PlayerNumber == 1)
+		{
+			AAFA_PawnMechanicalArm* PlayerMechArm = LevelActorManager->PlayersMechanicalArmPawn[0];
+			if (!ensure(PlayerMechArm != nullptr))
+				return;
+			PlayerMechArm->SetMaxRight(PlayerMechArm->GetMaxRight() * 1.5f);
 		}
 
 		GetWorld()->GetTimerManager().ClearTimer(ApplyPlayerNumberChangesHandler);

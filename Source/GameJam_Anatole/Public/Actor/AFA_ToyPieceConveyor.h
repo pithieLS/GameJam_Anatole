@@ -24,10 +24,14 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	TSubclassOf<class AAFA_ToyPiece> GetToyPieceToSpawn();
 	UFUNCTION(BlueprintCallable)
 	void SpawnToyPiece();
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnGameStartedHandler();
+
+	// Keep track of how many times each pieces has spawned to control the randomness
+	TMap<TSubclassOf<class AAFA_ToyPiece>, int32> SpawnedPiecesCount;
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
@@ -35,7 +39,7 @@ protected:
 
 	// Properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-	TArray<TSubclassOf<class AAFA_ToyPiece>> ToyPiecesToSpawn;
+	TArray<TSubclassOf<class AAFA_ToyPiece>> AvailableToyPieces;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
 	float SpawnRate = 5;
 

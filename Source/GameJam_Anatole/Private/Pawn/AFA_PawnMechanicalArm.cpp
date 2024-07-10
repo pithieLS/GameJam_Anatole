@@ -219,14 +219,14 @@ void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
 	FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the X axis
-	if (ClawLoc.X <= MAX_BACK && AxisValue < 0)
+	if (ClawLoc.X <= Max_Back && AxisValue < 0)
 	{
-		Claw->SetRelativeLocation(FVector(MAX_BACK, ClawLoc.Y, ClawLoc.Z));
+		Claw->SetRelativeLocation(FVector(Max_Back, ClawLoc.Y, ClawLoc.Z));
 		return;
 	}
-	else if (ClawLoc.X >= MAX_FORWARD && AxisValue > 0)
+	else if (ClawLoc.X >= Max_Forward && AxisValue > 0)
 	{
-		Claw->SetRelativeLocation(FVector(MAX_FORWARD, ClawLoc.Y, ClawLoc.Z));
+		Claw->SetRelativeLocation(FVector(Max_Forward, ClawLoc.Y, ClawLoc.Z));
 		return;
 	}
 
@@ -237,7 +237,7 @@ void AAFA_PawnMechanicalArm::OnMoveForward(float AxisValue)
 	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeLocation(FVector(MOVE_SPEED * AxisValue, 0, 0) * FApp::GetDeltaTime());
+	Claw->AddRelativeLocation(FVector(Move_Speed * AxisValue, 0, 0) * FApp::GetDeltaTime());
 }
 
 void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
@@ -251,14 +251,14 @@ void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
 	float ClawRoll = Claw->GetRelativeRotation().Roll;
 
 	// Cap the roll axis
-	if (ClawRoll >= MAX_ROLL && AxisValue < 0)
+	if (ClawRoll >= Max_Roll && AxisValue < 0)
 	{
-		Claw->SetRelativeRotation(FRotator(0, 0, MAX_ROLL));
+		Claw->SetRelativeRotation(FRotator(0, 0, Max_Roll));
 		return;
 	}
-	else if (ClawRoll <= MIN_ROLL && AxisValue > 0)
+	else if (ClawRoll <= Min_Roll && AxisValue > 0)
 	{
-		Claw->SetRelativeRotation(FRotator(0, 0, MIN_ROLL));
+		Claw->SetRelativeRotation(FRotator(0, 0, Min_Roll));
 		return;
 	}
 
@@ -269,7 +269,7 @@ void AAFA_PawnMechanicalArm::OnRotateClaw(float AxisValue)
 	else if (CheckClawCollision(MoveDirection * -1) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeRotation(FRotator(0, 0, (ROTATE_SPEED * AxisValue) * -1) * FApp::GetDeltaTime());
+	Claw->AddRelativeRotation(FRotator(0, 0, (Rotate_Speed * AxisValue) * -1) * FApp::GetDeltaTime());
 }
 
 void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
@@ -283,14 +283,14 @@ void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 	const FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the Y axis
-	if (ClawLoc.Y <= MAX_LEFT && AxisValue < 0)
+	if (ClawLoc.Y <= Max_Left && AxisValue < 0)
 	{
-		Claw->SetRelativeLocation(FVector(ClawLoc.X, MAX_LEFT, ClawLoc.Z));
+		Claw->SetRelativeLocation(FVector(ClawLoc.X, Max_Left, ClawLoc.Z));
 		return;
 	}
-	else if (ClawLoc.Y >= MAX_RIGHT && AxisValue > 0)
+	else if (ClawLoc.Y >= Max_Right && AxisValue > 0)
 	{
-		Claw->SetRelativeLocation(FVector(ClawLoc.X, MAX_RIGHT, ClawLoc.Z));
+		Claw->SetRelativeLocation(FVector(ClawLoc.X, Max_Right, ClawLoc.Z));
 		return;
 	}
 
@@ -301,7 +301,7 @@ void AAFA_PawnMechanicalArm::OnMoveRight(float AxisValue)
 	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeLocation(FVector(0, MOVE_SPEED * AxisValue, 0) * FApp::GetDeltaTime());
+	Claw->AddRelativeLocation(FVector(0, Move_Speed * AxisValue, 0) * FApp::GetDeltaTime());
 
 }
 
@@ -316,14 +316,14 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 	FVector ClawLoc = Claw->GetRelativeLocation();
 
 	// Cap the Z axis
-	if (ClawLoc.Z <= MAX_DOWN && AxisValue < 0)
+	if (ClawLoc.Z <= Max_Down && AxisValue < 0)
 	{
-		Claw->SetRelativeLocation(FVector(ClawLoc.X, ClawLoc.Y, MAX_DOWN));
+		Claw->SetRelativeLocation(FVector(ClawLoc.X, ClawLoc.Y, Max_Down));
 		return;
 	}
-	else if (ClawLoc.Z >= MAX_UP && AxisValue > 0)
+	else if (ClawLoc.Z >= Max_Up && AxisValue > 0)
 	{
-		Claw->SetRelativeLocation(FVector(ClawLoc.X, ClawLoc.Y, MAX_UP));
+		Claw->SetRelativeLocation(FVector(ClawLoc.X, ClawLoc.Y, Max_Up));
 		return;
 	}
 
@@ -334,7 +334,7 @@ void AAFA_PawnMechanicalArm::OnMoveUp(float AxisValue)
 	else if (CheckClawCollision(MoveDirection) && AxisValue > 0)
 		return;
 
-	Claw->AddRelativeLocation(FVector(0, 0, MOVE_SPEED * AxisValue) * FApp::GetDeltaTime());
+	Claw->AddRelativeLocation(FVector(0, 0, Move_Speed * AxisValue) * FApp::GetDeltaTime());
 }
 
 void AAFA_PawnMechanicalArm::GrabDropObject()

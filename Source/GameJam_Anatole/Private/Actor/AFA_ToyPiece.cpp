@@ -189,7 +189,7 @@ void AAFA_ToyPiece::AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo)
 	FRotator PieceRot = GetClosestRotation(true);
 	SetActorRelativeRotation(PieceRot);
 	FVector DistanceRootAndAttach = GetActorLocation() - SelfAttachPoint->GetComponentLocation();
-	SetActorLocation(TargetAttachPoint->GetComponentLocation() + DistanceRootAndAttach);
+	SetActorLocation(TargetAttachPoint->GetChildComponent(0)->GetComponentLocation() + DistanceRootAndAttach);
 
 	//SetToyGroupCollisionType(ECC_GameTraceChannel1);
 	//SetToyGroupCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
@@ -221,7 +221,7 @@ void AAFA_ToyPiece::AttachGroupToToyPiece(USphereComponent* AttachPointToAttach,
 	MasterPiece->PieceMesh->SetSimulatePhysics(false);
 	FVector DistanceAttachedPieceAndMasterPiece = MasterPiece->GetActorLocation() - GetActorLocation();
 	FVector DistanceRootAndAttach = GetActorLocation() - AttachPointToAttach->GetComponentLocation();
-	FVector AttachLocation = TargetAttachPoint->GetComponentLocation() + DistanceRootAndAttach;
+	FVector AttachLocation = TargetAttachPoint->GetChildComponent(0)->GetComponentLocation() + DistanceRootAndAttach;
 	//FRotator PieceRot = MasterPiece->GetClosestRotation();
 	//MasterPiece->SetActorRotation(PieceRot);
 	MasterPiece->SetActorLocation(AttachLocation + DistanceAttachedPieceAndMasterPiece);

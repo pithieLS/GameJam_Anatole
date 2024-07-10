@@ -20,7 +20,9 @@ AAFA_ToyPieceConveyor::AAFA_ToyPieceConveyor()
 
 void AAFA_ToyPieceConveyor::AddToyPieceToSpawn(TSubclassOf<class AAFA_ToyPiece> ToyPieceToAdd)
 {
-	ToyPiecesToSpawn.Add(ToyPieceToAdd);
+	AvailableToyPieces.Add(ToyPieceToAdd);
+
+	SpawnedPiecesCount.Add(ToyPieceToAdd, 0);
 }
 
 // Called when the game starts or when spawned
@@ -48,13 +50,43 @@ void AAFA_ToyPieceConveyor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
+TSubclassOf<class AAFA_ToyPiece> AAFA_ToyPieceConveyor::GetToyPieceToSpawn()
+{
+	float AverageSpawnCount = 0;
+	int32 TotalSpawnCount = 0;
+	for (TPair<TSubclassOf<class AAFA_ToyPiece>, int32> PieceSpawnCount : SpawnedPiecesCount)
+		TotalSpawnCount += PieceSpawnCount.Value;
+	AverageSpawnCount = (float)TotalSpawnCount / (float)SpawnedPiecesCount.Num();
+
+	UE_LOG(LogTemp, Warning, TEXT("**************************************************************************************"));
+	TArray<TSubclassOf<class AAFA_ToyPiece>> SpawnablePiecesArray; // Array that contains only the pieces that didn't spawned a lot more than the average spawn count of each pieces
+	for (TPair<TSubclassOf<class AAFA_ToyPiece>, int32> PieceSpawnCount : SpawnedPiecesCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s //////////// %d"), *PieceSpawnCount.Key->GetDisplayNameText().ToString(), PieceSpawnCount.Value);
+
+		if (PieceSpawnCount.Value < AverageSpawnCount - 2)
+			return PieceSpawnCount.Key;
+		else if (PieceSpawnCount.Value < AverageSpawnCount + 2)
+			SpawnablePiecesArray.Add(PieceSpawnCount.Key);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("average: %f"), AverageSpawnCount);
+	UE_LOG(LogTemp, Warning, TEXT("**************************************************************************************"));
+	int32 RandIndex = FMath::RandRange(0, SpawnablePiecesArray.Num() - 1);
+	return SpawnablePiecesArray[RandIndex];
+}
+
 void AAFA_ToyPieceConveyor::SpawnToyPiece()
 {
-	int32 RandIndex = FMath::RandRange(0, ToyPiecesToSpawn.Num() - 1);
+	TSubclassOf<class AAFA_ToyPiece> ToyPiecesToSpawn = GetToyPieceToSpawn();
+	if (!ensure(ToyPiecesToSpawn != nullptr))
+		return;
 
-	AActor* SpawnedToyPiece = GetWorld()->SpawnActor<AActor>(ToyPiecesToSpawn[RandIndex], ToyPieceSpawnPoint->GetComponentTransform());
+	AActor* SpawnedToyPiece = GetWorld()->SpawnActor<AActor>(ToyPiecesToSpawn, ToyPieceSpawnPoint->GetComponentTransform());
 	if (!ensure(SpawnedToyPiece != nullptr))
 		return;
+
+	int32 SpawnedCount = *SpawnedPiecesCount.Find(ToyPiecesToSpawn);
+	SpawnedPiecesCount.Add(ToyPiecesToSpawn, SpawnedCount + 1);
 }
 
 // Called every frame

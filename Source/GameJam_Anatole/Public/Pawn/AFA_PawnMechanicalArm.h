@@ -25,7 +25,9 @@ public:
 
 	// Getters & Setters
 	UPhysicsHandleComponent* GetPhysicHandle() { return PhysicHandle; }
-	
+	int32 GetMaxRight() { return Max_Right; }
+	void SetMaxRight(int32 NewMaxRight) { Max_Right = NewMaxRight; }
+
 	// Grab/Drop related
 	void DropToyPiece();
 
@@ -33,6 +35,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 
 	UFUNCTION()
 	void OnGameStartedHandler();
@@ -57,27 +60,26 @@ protected:
 	void WeldObjects();
 	void UnWeldObjects();
 
-	// Const variables TEMP
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MAX_UP = 200;
+	int32 Max_Up = 200;
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MAX_DOWN = -100;
+	int32 Max_Down = -100;
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MAX_LEFT = -110;
+	int32 Max_Left = -110;
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MAX_RIGHT = 100;
+	int32 Max_Right = 100;
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MAX_FORWARD = 100;
+	int32 Max_Forward = 100;
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MAX_BACK = -100;
+	int32 Max_Back = -100;
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MAX_ROLL = 150;
+	int32 Max_Roll = 150;
 	UPROPERTY(EditAnywhere, Category = "Control properties | MoveRange")
-	int32 MIN_ROLL = -150;
+	int32 Min_Roll = -150;
 	UPROPERTY(EditAnywhere, Category = "Control properties | Control speeds")
-	float MOVE_SPEED = 150;
+	float Move_Speed = 150;
 	UPROPERTY(EditAnywhere, Category = "Control properties | Control speeds")
-	float ROTATE_SPEED = 100;
+	float Rotate_Speed = 100;
 
 	// Components
 	UPROPERTY(EditDefaultsOnly)
