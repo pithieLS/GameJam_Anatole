@@ -18,29 +18,34 @@ public:
 	// Sets default values for this actor's properties
 	AAFA_ToyPiece();
 
-	FRotator GetClosestRotation(bool bIsGettingClosestRelativeRot); // Get closest rotation from the ValidRotation array
+	void DestroyToyGroup();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void FadeOutPiece();
 
 	// Getters
 	UStaticMeshComponent* GetPieceMesh() { return PieceMesh; }
+	UFUNCTION(BlueprintCallable)
 	TArray<AAFA_ToyPiece*> GetAllAttachedPieces();
+	FRotator GetClosestRotation(bool bIsGettingClosestRelativeRot); // Get closest rotation from the ValidRotation array
 
 	// Attach related func/method public
 	void DetachFromArm();
+	UFUNCTION(BlueprintCallable)
 	void DetachFromToyPiece();
 	void AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo);
 	void AttachGroupToToyPiece(USphereComponent* AttachPointToAttach, USphereComponent* TargetAttachPoint);
 	void SetToyGroupCollisionType(ECollisionChannel ChannelName);
 	void SetToyGroupCollisionResponseToChannel(ECollisionChannel ChannelName, ECollisionResponse CollisionResponse);
 	AAFA_ToyPiece* GetMasterPiece();
-	TPair<AAFA_ToyPiece*, USphereComponent*> GetOverlappedToyPieceAttachedPoint(AAFA_ToyPiece* TargetPiece) const; /* Return Key = Toy Piece, Value = AttachPoint
+	TMap<AAFA_ToyPiece*, USphereComponent*> GetOverlappedToyPiecesAttachedPoints(AAFA_ToyPiece* TargetPiece) const; /* Return Key = Toy Piece, Value = AttachPoint
 																												    Put nullptr in param if you want a general search*/
+
 	// Attach related
 	TPair<AAFA_ToyPiece*, USphereComponent*> OverlappedToyPieceAndAttachPoint;
 	AAFA_PawnMechanicalArm* ArmAttachedTo;
 	AAFA_ToyPiece* ParentPiece;
 	TMap<USphereComponent*, AAFA_ToyPiece*> AttachPointsToPieceMap;
 
-	void DestroyToyGroup();
 
 protected:
 	// Called when the game starts or when spawned
@@ -53,7 +58,7 @@ protected:
 	void GetAttachedPieces(TArray<AAFA_ToyPiece*>& OutAttachedPieces) const;
 
 	// Components
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UStaticMeshComponent* PieceMesh;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	USceneComponent* AttachPointsParent;

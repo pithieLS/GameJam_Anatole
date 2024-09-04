@@ -84,13 +84,15 @@ FRotator AAFA_ToyPiece::GetClosestRotation(bool bIsGettingClosestRelativeRot)
 	return PieceRot;
 }
 
-TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAttachedPoint(AAFA_ToyPiece* TargetPiece) const
+TMap<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPiecesAttachedPoints(AAFA_ToyPiece* TargetPiece) const
 {
 	TArray<USphereComponent*> AttachPointsArray;
 	AttachPointsToPieceMap.GenerateKeyArray(AttachPointsArray);
 
 	TArray<AAFA_ToyPiece*> AlreadyAttachedPieces;
 	AttachPointsToPieceMap.GenerateValueArray(AlreadyAttachedPieces);
+
+	TMap<AAFA_ToyPiece*, USphereComponent*> ToyPiecesAttachedPoints;
 
 	for (const USphereComponent* _AttachPoint : AttachPointsArray)
 	{
@@ -109,11 +111,11 @@ TPair<AAFA_ToyPiece*, USphereComponent*> AAFA_ToyPiece::GetOverlappedToyPieceAtt
 				if(AlreadyAttachedPieces.Contains(CastedToyPiece))
 					continue;
 
-				return { CastedToyPiece, OverlappedAttachPoint };
+				ToyPiecesAttachedPoints.Add(CastedToyPiece, OverlappedAttachPoint);
 			}
 	}
 
-	return {nullptr, nullptr};
+	return ToyPiecesAttachedPoints;
 }
 
 TArray<AAFA_ToyPiece*> AAFA_ToyPiece::GetAllAttachedPieces()
@@ -156,7 +158,9 @@ void AAFA_ToyPiece::DetachFromToyPiece()
 	//PieceMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 	PieceMesh->SetSimulatePhysics(true);
 	DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
-	for (TPair<USphereComponent*, AAFA_ToyPiece*> AttachPointPieces : AttachPointsToPieceMap)
+
+	TMap<USphereComponent*, AAFA_ToyPiece*> AttachPointToPieceMapCopy = AttachPointsToPieceMap;
+	for (TPair<USphereComponent*, AAFA_ToyPiece*> AttachPointPieces : AttachPointToPieceMapCopy)
 	{
 		AttachPointsToPieceMap.Add(AttachPointPieces.Key, nullptr);
 	}
@@ -177,8 +181,17 @@ void AAFA_ToyPiece::AttachToToyPiece(AAFA_ToyPiece* ToyPieceToAttachTo)
 	// Prepare the mesh for attachment
 	PieceMesh->SetSimulatePhysics(false);
 
-	USphereComponent* SelfAttachPoint = ToyPieceToAttachTo->GetOverlappedToyPieceAttachedPoint(nullptr).Value;
-	USphereComponent* TargetAttachPoint = GetOverlappedToyPieceAttachedPoint(ToyPieceToAttachTo).Value;
+	// Get attach points of both pieces
+	TArray<USphereComponent*> FoundSelfAttachPoints;
+	TArray<USphereComponent*> FoundTargetAttachPoints;
+	ToyPieceToAttachTo->GetOverlappedToyPiecesAttachedPoints(this).GenerateValueArray(FoundSelfAttachPoints);
+	GetOverlappedToyPiecesAttachedPoints(ToyPieceToAttachTo).GenerateValueArray(FoundTargetAttachPoints);
+
+	USphereComponent* SelfAttachPoint = FoundSelfAttachPoints[0];
+	USphereComponent* TargetAttachPoint = FoundTargetAttachPoints[0];
+
+	if(FoundSelfAttachPoints.Num() > 1 || FoundTargetAttachPoints.Num() > 1)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("(!) Multiple attach points of non attach piece overlapped (!)"));
 
 	// Set attached toy piece to both attach points
 	AttachPointsToPieceMap.Add(SelfAttachPoint, ToyPieceToAttachTo);
@@ -220,7 +233,7 @@ void AAFA_ToyPiece::AttachGroupToToyPiece(USphereComponent* AttachPointToAttach,
 	MasterPiece->SetActorRelativeRotation(PieceRot);
 	MasterPiece->PieceMesh->SetSimulatePhysics(false);
 	FVector DistanceAttachedPieceAndMasterPiece = MasterPiece->GetActorLocation() - GetActorLocation();
-	FVector DistanceRootAndAttach = GetActorLocation() - AttachPointToAttach->GetComponentLocation();
+	FVector DistanceRootAndAttach = GetActorLocation() - AttachPointToAttach->GetChildComponent(0)->GetComponentLocation();
 	FVector AttachLocation = TargetAttachPoint->GetChildComponent(0)->GetComponentLocation() + DistanceRootAndAttach;
 	//FRotator PieceRot = MasterPiece->GetClosestRotation();
 	//MasterPiece->SetActorRotation(PieceRot);

@@ -379,7 +379,7 @@ void AAFA_PawnMechanicalArm::GrabDropObject()
 	}
 }
 
-void AAFA_PawnMechanicalArm::WeldObjects()
+void AAFA_PawnMechanicalArm::WeldObjects() // TODO: A VERIFIER
 {
 	if (GrabbedToyPiece == nullptr)
 		return;
@@ -390,25 +390,41 @@ void AAFA_PawnMechanicalArm::WeldObjects()
 	TArray<AAFA_ToyPiece*> AttachedPieces = GrabbedToyPiece->GetAllAttachedPieces();
 	for (AAFA_ToyPiece* ToyPiece : AttachedPieces)
 	{
-		TPair<AAFA_ToyPiece*, USphereComponent*> _OverlappedPieceAndAttachPoint = ToyPiece->GetOverlappedToyPieceAttachedPoint(nullptr);
-		AAFA_ToyPiece* _OverlappedToyPiece = _OverlappedPieceAndAttachPoint.Key;
+		// en cours: Faire en sorte d'itérer à travers tout les toy piece et attach points et pas que le premier car sinon ça peut ne pas fonctionner et dans le cas ou c'est compacté, ils GetOverlappedToyPieceAttachedPoint retourne que le premier
+		TMap<AAFA_ToyPiece*, USphereComponent*> _OverlappedPiecesAndAttachPoints = ToyPiece->GetOverlappedToyPiecesAttachedPoints(nullptr);
 
-		if (_OverlappedToyPiece == nullptr)
-			continue;
-		if(AttachedPieces.Contains(_OverlappedToyPiece))
-			continue;
-
-		if (_OverlappedToyPiece->GetAllAttachedPieces().Num() > 1)
+		for (TPair<AAFA_ToyPiece*, USphereComponent*> PieceAndAttachPoint : _OverlappedPiecesAndAttachPoints)
 		{
-			USphereComponent* AttachPointToAttach = ToyPiece->GetOverlappedToyPieceAttachedPoint(_OverlappedToyPiece).Value;
-			USphereComponent* TargetAttachPoint = _OverlappedToyPiece->GetOverlappedToyPieceAttachedPoint(ToyPiece).Value;
+			AAFA_ToyPiece* _OverlappedToyPiece = PieceAndAttachPoint.Key;
 
-			_OverlappedToyPiece->AttachGroupToToyPiece(AttachPointToAttach, TargetAttachPoint);
-			AttachToClaw(GrabbedToyPiece);
+			if (_OverlappedToyPiece == nullptr)
+				continue;
+			if (AttachedPieces.Contains(_OverlappedToyPiece))
+				continue;
+
+			if (_OverlappedToyPiece->GetAllAttachedPieces().Num() > 1)
+			{
+				USphereComponent* AttachPointToAttach = PieceAndAttachPoint.Value;
+				if (ToyPiece->AttachPointsToPieceMap.Find(AttachPointToAttach) != nullptr) // Check if the attach point is free
+					continue;
+
+				TArray<USphereComponent*> OverlappedAttachedPoints;
+				_OverlappedToyPiece->GetOverlappedToyPiecesAttachedPoints(ToyPiece).GenerateValueArray(OverlappedAttachedPoints);
+
+				USphereComponent* TargetAttachPoint = OverlappedAttachedPoints[0];
+				if (_OverlappedToyPiece->AttachPointsToPieceMap.Contains(TargetAttachPoint))
+					continue;
+
+				_OverlappedToyPiece->AttachGroupToToyPiece(AttachPointToAttach, TargetAttachPoint);
+				AttachToClaw(GrabbedToyPiece);
+				return;
+			}
+			else
+			{
+				_OverlappedToyPiece->AttachToToyPiece(ToyPiece);
+				return;
+			}
 		}
-		else
-			_OverlappedToyPiece->AttachToToyPiece(ToyPiece);
-		break;
 	}
 }
 
